@@ -4,7 +4,7 @@ import java.math.BigInteger;
 
 public class Letter {
     private String content;
-    private BigInteger id;  // User ID to whom the message is addressed
+    private BigInteger id;
     private String recipient;
 
     public String getRecipient() {
@@ -12,7 +12,7 @@ public class Letter {
     }
 
     public void setRecipient(String recipient) {
-        this.recipient = recipient;
+        this.recipient = recipient.toLowerCase();
     }
 
     public BigInteger getId() {
