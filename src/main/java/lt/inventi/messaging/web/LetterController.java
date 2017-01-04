@@ -13,15 +13,14 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class LetterController {
     private static BigInteger letterId = BigInteger.ONE;
-    private static BigInteger userId = BigInteger.ONE;
-    private static HashMap<BigInteger, HashMap<BigInteger, Letter>> userMap =
-            new HashMap<BigInteger, HashMap<BigInteger, Letter>>();  // HashMap of users. Each user has a HM of letters.
+    private static HashMap<String, HashMap<BigInteger, Letter>> userMap =
+            new HashMap<String, HashMap<BigInteger, Letter>>();  // HashMap of users. Each user has a HM of letters.
 
-    private static Letter saveLetter(BigInteger userId, Letter letter) {
-        HashMap<BigInteger, Letter> userLetters = userMap.get(userId);
+    private static Letter saveLetter(String username, Letter letter) {
+        HashMap<BigInteger, Letter> userLetters = userMap.get(username);
         if (userLetters == null) {
             userLetters = new HashMap<BigInteger, Letter>();
-            userMap.put(userId, userLetters);
+            userMap.put(username, userLetters);
         }
 
         // Creation of letters
@@ -32,8 +31,8 @@ public class LetterController {
         return letter;
     }
 
-    private static Letter editLetter(BigInteger userid, BigInteger letterid, Letter letter) {
-        HashMap<BigInteger, Letter> userLetters = userMap.get(userid);
+    private static Letter editLetter(String username, BigInteger letterid, Letter letter) {
+        HashMap<BigInteger, Letter> userLetters = userMap.get(username);
         if(userLetters == null) {
             return null;
         }
@@ -46,13 +45,13 @@ public class LetterController {
 
             return letter;
         }
-        saveLetter(userid, letter);
+        saveLetter(username, letter);
 
         return letter;
     }
 
-    private static boolean deleteLetter(BigInteger userId, BigInteger letterId) {
-        HashMap<BigInteger, Letter> userLetters = userMap.get(userId);
+    private static boolean deleteLetter(String username, BigInteger letterId) {
+        HashMap<BigInteger, Letter> userLetters = userMap.get(username);
         if(userLetters == null) {
             return false;
         }
@@ -65,21 +64,23 @@ public class LetterController {
     static {
         Letter initial = new Letter();
         initial.setContent("initial content");
-        saveLetter(userId, initial);
+        initial.setRecipient("Two");
+        saveLetter("one", initial);
 
         Letter initial2 = new Letter();
         initial2.setContent("initial content 2");
-        saveLetter(userId, initial2);
+        initial2.setRecipient("One");
+        saveLetter("one", initial2);
     }
 
     // View all messages
     @RequestMapping(
-            value="/users/{userid}/letters",
+            value="/users/{username}/letters",
             method=RequestMethod.GET,
             produces=MediaType.APPLICATION_JSON_VALUE
     )
-    private ResponseEntity<HashMap<BigInteger, Letter>> viewAllLetters(@PathVariable("userid") BigInteger userid) {
-        HashMap<BigInteger, Letter> userLetters = userMap.get(userid);
+    private ResponseEntity<HashMap<BigInteger, Letter>> viewAllLetters(@PathVariable("username") String username) {
+        HashMap<BigInteger, Letter> userLetters = userMap.get(username);
         if(userLetters == null) {
             return new ResponseEntity<HashMap<BigInteger, Letter>>(HttpStatus.NOT_FOUND);
         }
@@ -88,18 +89,18 @@ public class LetterController {
 
     // View a single message
     @RequestMapping(
-            value="/users/{userid}/letters/{letterid}",
+            value="/users/{username}/letters/{letterid}",
             method=RequestMethod.GET,
             produces=MediaType.APPLICATION_JSON_VALUE
     )
-    private ResponseEntity<Letter> viewUsereLetter(@PathVariable("userid") BigInteger userid,
+    private ResponseEntity<Letter> viewUsereLetter(@PathVariable("username") String username,
                                                    @PathVariable("letterid") BigInteger letterid) {
-        HashMap<BigInteger, Letter> userLetters = userMap.get(userid);
+        HashMap<BigInteger, Letter> userLetters = userMap.get(username);
         if(userLetters == null) {
             return new ResponseEntity<Letter>(HttpStatus.NOT_FOUND);
         }
 
-        Letter letter = userMap.get(userid).get(letterid);
+        Letter letter = userMap.get(username).get(letterid);
         if(letter == null) {
             return new ResponseEntity<Letter>(HttpStatus.NOT_FOUND);
         }
@@ -109,27 +110,27 @@ public class LetterController {
 
     // Send message
     @RequestMapping(
-            value="/users/{userid}/letters",
+            value="/users/{username}/letters",
             method=RequestMethod.POST,
             produces=MediaType.APPLICATION_JSON_VALUE,
             consumes=MediaType.APPLICATION_JSON_VALUE
     )
-    private ResponseEntity<Letter> sendLetter(@PathVariable("userid") BigInteger userid,
+    private ResponseEntity<Letter> sendLetter(@PathVariable("username") String username,
                                               @RequestBody Letter letter) {
-        Letter sentLetter = saveLetter(userid, letter);
+        Letter sentLetter = saveLetter(username, letter);
 
         return new ResponseEntity<Letter>(sentLetter, HttpStatus.OK);
     }
 
     // Delete message
     @RequestMapping(
-            value="/users/{userid}/letters/{letterid}",
+            value="/users/{username}/letters/{letterid}",
             method=RequestMethod.DELETE,
             consumes=MediaType.APPLICATION_JSON_VALUE
     )
-    private ResponseEntity<Letter> deleteUserLetter(@PathVariable("userid") BigInteger userid,
+    private ResponseEntity<Letter> deleteUserLetter(@PathVariable("username") String username,
                                                     @PathVariable("letterid") BigInteger letterid) {
-        boolean letterDeleted = deleteLetter(userid, letterid);
+        boolean letterDeleted = deleteLetter(username, letterid);
         if(letterDeleted) {
             return new ResponseEntity<Letter>(HttpStatus.NO_CONTENT);
         }
@@ -137,15 +138,15 @@ public class LetterController {
     }
 
     @RequestMapping(
-            value="/users/{userid}/letters/{letterid}",
+            value="/users/{username}/letters/{letterid}",
             method=RequestMethod.PUT,
             produces=MediaType.APPLICATION_JSON_VALUE,
             consumes=MediaType.APPLICATION_JSON_VALUE
     )
-    private ResponseEntity<Letter> editUserLetter(@PathVariable("userid") BigInteger userid,
+    private ResponseEntity<Letter> editUserLetter(@PathVariable("username") String username,
                                                   @PathVariable("letterid") BigInteger letterid,
                                                   @RequestBody Letter letter) {
-        Letter editedLetter = editLetter(userid, letterid, letter);
+        Letter editedLetter = editLetter(username, letterid, letter);
         if(editedLetter == null) {
             return new ResponseEntity<Letter>(HttpStatus.NOT_FOUND);
         }
