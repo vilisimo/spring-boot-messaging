@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.HashMap;
 
 import lt.inventi.messaging.domain.Letter;
+import lt.inventi.messaging.domain.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -135,7 +136,7 @@ public class LetterController {
         Letter reply = saveLetterToDrafts(username, letter);
         Letter sentLetter = sendUserLetter(username, reply);
 
-        return new ResponseEntity<Letter>(sentLetter, HttpStatus.OK);
+        return new ResponseEntity<Letter>(HttpStatus.OK);
     }
 
     @RequestMapping(
@@ -155,7 +156,7 @@ public class LetterController {
         }
         Letter sentLetter = sendUserLetter(username, letter);
 
-        return new ResponseEntity<Letter>(sentLetter, HttpStatus.OK);
+        return new ResponseEntity<Letter>(HttpStatus.OK);
     }
 
 
@@ -191,7 +192,6 @@ public class LetterController {
         return new ResponseEntity<Letter>(letter, HttpStatus.OK);
     }
 
-    // View all messages
     @RequestMapping(
             value="/users/{username}/drafts",
             method=RequestMethod.GET,
@@ -205,14 +205,13 @@ public class LetterController {
         return new ResponseEntity<HashMap<BigInteger, Letter>>(userDrafts, HttpStatus.OK);
     }
 
-    // View a single message
     @RequestMapping(
             value="/users/{username}/drafts/{letterid}",
             method=RequestMethod.GET,
             produces=MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<Letter> viewDraftLetter(@PathVariable("username") String username,
-                                                   @PathVariable("letterid") BigInteger letterid) {
+                                                  @PathVariable("letterid") BigInteger letterid) {
         HashMap<BigInteger, Letter> userLetters = userDraftsMap.get(username);
         if (userLetters == null) {
             return new ResponseEntity<Letter>(HttpStatus.NOT_FOUND);
@@ -226,31 +225,29 @@ public class LetterController {
         return new ResponseEntity<Letter>(letter, HttpStatus.OK);
     }
 
-    // Send message
     @RequestMapping(
             value="/users/{username}/drafts",
             method=RequestMethod.POST,
             produces=MediaType.APPLICATION_JSON_VALUE,
             consumes=MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<Letter> saveDraft(@PathVariable("username") String username,
-                                             @RequestBody Letter letter) {
+    public ResponseEntity<Response> saveDraft(@PathVariable("username") String username,
+                                              @RequestBody Letter letter) {
         if (letter.getRecipient() == null) {
-            return new ResponseEntity<Letter>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<Response>(HttpStatus.BAD_REQUEST);
         }
         Letter sentLetter = saveLetterToDrafts(username, letter);
 
-        return new ResponseEntity<Letter>(sentLetter, HttpStatus.OK);
+        return new ResponseEntity<Response>(new Response(sentLetter.getId()), HttpStatus.OK);
     }
 
-    // Delete message
     @RequestMapping(
             value="/users/{username}/drafts/{letterid}",
             method=RequestMethod.DELETE,
             consumes=MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<Letter> deleteUserDraft(@PathVariable("username") String username,
-                                                   @PathVariable("letterid") BigInteger letterid) {
+    public ResponseEntity<Letter> deleteDraft(@PathVariable("username") String username,
+                                              @PathVariable("letterid") BigInteger letterid) {
         boolean letterDeleted = deleteLetter(username, letterid);
         if (letterDeleted) {
             return new ResponseEntity<Letter>(HttpStatus.NO_CONTENT);
@@ -264,13 +261,13 @@ public class LetterController {
             produces=MediaType.APPLICATION_JSON_VALUE,
             consumes=MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<Letter> editUserDraft(@PathVariable("username") String username,
-                                                 @PathVariable("letterid") BigInteger letterid,
-                                                 @RequestBody Letter letter) {
+    public ResponseEntity<Letter> editDraft(@PathVariable("username") String username,
+                                            @PathVariable("letterid") BigInteger letterid,
+                                            @RequestBody Letter letter) {
         Letter editedLetter = editLetter(username, letterid, letter);
         if (editedLetter == null) {
             return new ResponseEntity<Letter>(HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<Letter>(editedLetter, HttpStatus.OK);
+        return new ResponseEntity<Letter>(HttpStatus.OK);
     }
 }
