@@ -3,21 +3,30 @@ package lt.inventi.messaging.web;
 import java.math.BigInteger;
 import java.util.HashMap;
 
+import lt.inventi.messaging.database.LetterDatabase;
 import lt.inventi.messaging.domain.Letter;
-import lt.inventi.messaging.domain.Response;
+import lt.inventi.messaging.domain.IdContainer;
+import lt.inventi.messaging.mailing.PostOffice;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
 @RestController
 public class LetterController {
     private static BigInteger letterId = BigInteger.ONE;
-    private static HashMap<String, HashMap<BigInteger, Letter>> userDraftsMap =
-            new HashMap<String, HashMap<BigInteger, Letter>>();  // HashMap of users. Each user has a HM of letters.
-    private static HashMap<String, HashMap<BigInteger, Letter>> userInboxMap =
-            new HashMap<String, HashMap<BigInteger, Letter>>(); // map of sent messages for each user.
+
+    @Autowired
+    private final LetterDatabase database;
+
+    @Autowired
+    private final PostOffice postOffice;
+
+    public LetterController(LetterDatabase database, PostOffice postOffice) {
+        this.database = database;
+        this.postOffice = postOffice;
+    }
 
     /**
      * ******* *
@@ -25,23 +34,23 @@ public class LetterController {
      * ******* *
      */
 
-    private static Letter sendUserLetter(String username, Letter letter) {
+    private Letter sendUserLetter(String username, Letter letter) {
         Letter filledLetter = null;
-        HashMap<BigInteger, Letter> userDrafts = userDraftsMap.get(username);
+        HashMap<BigInteger, Letter> userDrafts = database.userDraftsMap.get(username);
         if (userDrafts != null) {
             filledLetter = userDrafts.remove(letter.getId());
         }
 
         if (filledLetter == null) {
-            filledLetter = fillInLetter(username, letter);
+            filledLetter = fillLetterDetails(username, letter);
         }
         String recipient = filledLetter.getRecipient();
-        saveLetterToHashMap(recipient, letter, userInboxMap);
+        saveLetterToHashMap(recipient, letter, database.userInboxMap);
 
         return filledLetter;
     }
 
-    private static void saveLetterToHashMap(String username, Letter letter,
+    private void saveLetterToHashMap(String username, Letter letter,
                                               HashMap<String, HashMap<BigInteger, Letter>> hashMap) {
         HashMap<BigInteger, Letter> userLetters = hashMap.get(username);
         if (userLetters == null) {
@@ -51,7 +60,7 @@ public class LetterController {
         userLetters.put(letter.getId(), letter);
     }
 
-    private static boolean isInHashMap(String username, BigInteger letterid,
+    private boolean isInHashMap(String username, BigInteger letterid,
                                        HashMap<String, HashMap<BigInteger, Letter>> hashMap) {
         HashMap<BigInteger, Letter> userMessages = hashMap.get(username);
         if (userMessages == null) {
@@ -65,7 +74,7 @@ public class LetterController {
         return true;
     }
 
-    private static Letter fillInLetter(String username, Letter letter) {
+    private Letter fillLetterDetails(String username, Letter letter) {
         letter.setId(letterId);  // Make sure a letter has unique ID
         letterId = letterId.add(BigInteger.ONE);
         letter.setAuthor(username);  // Ensure draft's author is the same person as the one saving it.
@@ -73,8 +82,8 @@ public class LetterController {
         return letter;
     }
 
-    private static Letter editLetter(String username, BigInteger letterid, Letter letter) {
-        HashMap<BigInteger, Letter> userDrafts = userDraftsMap.get(username);
+    private Letter editLetter(String username, BigInteger letterid, Letter letter) {
+        HashMap<BigInteger, Letter> userDrafts = database.userDraftsMap.get(username);
         if (userDrafts == null) {
             return null;
         }
@@ -88,14 +97,14 @@ public class LetterController {
 
             return letter;
         }
-        Letter filledLetter = fillInLetter(username, letter);
-        saveLetterToHashMap(username, letter, userDraftsMap);
+        Letter filledLetter = fillLetterDetails(username, letter);
+        saveLetterToHashMap(username, letter, database.userDraftsMap);
 
         return filledLetter;
     }
 
-    private static boolean deleteLetter(String username, BigInteger letterId) {
-        HashMap<BigInteger, Letter> userDrafts = userDraftsMap.get(username);
+    private boolean deleteLetter(String username, BigInteger letterId) {
+        HashMap<BigInteger, Letter> userDrafts = database.userDraftsMap.get(username);
         if (userDrafts == null) {
             return false;
         }
@@ -105,20 +114,20 @@ public class LetterController {
         return deletedLetter != null;
     }
 
-    // TEMPORARY - just to quickly see how the data looks
-    static {
-        Letter draftInitial = new Letter();
-        draftInitial.setContent("initial content");
-        draftInitial.setRecipient("Two");
-        Letter filledLetter = fillInLetter("one", draftInitial);
-        saveLetterToHashMap("one", filledLetter, userDraftsMap);
-
-        Letter draftInitial2 = new Letter();
-        draftInitial2.setContent("initial content 2");
-        draftInitial2.setRecipient("One");
-        Letter filledLetter2 = fillInLetter("one", draftInitial2);
-        saveLetterToHashMap("one", filledLetter2, userDraftsMap);
-    }
+    // // TEMPORARY - just to quickly see how the data looks
+    // static {
+    //     Letter draftInitial = new Letter();
+    //     draftInitial.setContent("initial content");
+    //     draftInitial.setRecipient("Two");
+    //     Letter filledLetter = fillLetterDetails("one", draftInitial);
+    //     saveLetterToHashMap("one", filledLetter, userDraftsMap);
+    //
+    //     Letter draftInitial2 = new Letter();
+    //     draftInitial2.setContent("initial content 2");
+    //     draftInitial2.setRecipient("One");
+    //     Letter filledLetter2 = fillLetterDetails("one", draftInitial2);
+    //     saveLetterToHashMap("one", filledLetter2, userDraftsMap);
+    // }
 
 
     /**
@@ -137,15 +146,15 @@ public class LetterController {
     public ResponseEntity<Letter> replyToLetter(@PathVariable("username") String username,
                                                 @PathVariable("letterid") BigInteger letterid,
                                                 @RequestBody Letter letter) {
-        boolean letterInInbox = isInHashMap(username, letterid, userInboxMap);
+        boolean letterInInbox = isInHashMap(username, letterid, database.userInboxMap);
         if (!letterInInbox) {
             return new ResponseEntity<Letter>(HttpStatus.NOT_FOUND);
         }
 
-        Letter originalLetter = userInboxMap.get(username).get(letterid);
+        Letter originalLetter = database.userInboxMap.get(username).get(letterid);
         String recipient = originalLetter.getAuthor();
         letter.setRecipient(recipient);
-        Letter reply = fillInLetter(username, letter);
+        Letter reply = fillLetterDetails(username, letter);
         Letter sentLetter = sendUserLetter(username, reply);
 
         return new ResponseEntity<Letter>(HttpStatus.OK);
@@ -160,7 +169,7 @@ public class LetterController {
     public ResponseEntity<Letter> sendLetter(@PathVariable("username") String username,
                                               @PathVariable("letterid") BigInteger letterid,
                                               @RequestBody Letter letter) {
-        boolean inDrafts = isInHashMap(username, letterid, userDraftsMap);
+        boolean inDrafts = isInHashMap(username, letterid, database.userDraftsMap);
         if (inDrafts) {
             editLetter(username, letterid, letter);
         }
@@ -176,7 +185,7 @@ public class LetterController {
             produces=MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<HashMap<BigInteger, Letter>> viewInbox(@PathVariable("username") String username) {
-        HashMap<BigInteger, Letter> userReceivedMessages = userInboxMap.get(username);
+        HashMap<BigInteger, Letter> userReceivedMessages = database.userInboxMap.get(username);
         if (userReceivedMessages == null) {
             return new ResponseEntity<HashMap<BigInteger, Letter>>(HttpStatus.NOT_FOUND);
         }
@@ -190,7 +199,7 @@ public class LetterController {
     )
     public ResponseEntity<Letter> viewInboxLetter(@PathVariable("username") String username,
                                                    @PathVariable("letterid") BigInteger letterid) {
-        HashMap<BigInteger, Letter> userInbox = userInboxMap.get(username);
+        HashMap<BigInteger, Letter> userInbox = database.userInboxMap.get(username);
         if (userInbox == null) {
             return new ResponseEntity<Letter>(HttpStatus.NOT_FOUND);
         }
@@ -208,7 +217,7 @@ public class LetterController {
             produces=MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<HashMap<BigInteger, Letter>> viewDrafts(@PathVariable("username") String username) {
-        HashMap<BigInteger, Letter> userDrafts = userDraftsMap.get(username);
+        HashMap<BigInteger, Letter> userDrafts = database.userDraftsMap.get(username);
         if (userDrafts == null) {
             return new ResponseEntity<HashMap<BigInteger, Letter>>(HttpStatus.NOT_FOUND);
         }
@@ -222,12 +231,12 @@ public class LetterController {
     )
     public ResponseEntity<Letter> viewDraftLetter(@PathVariable("username") String username,
                                                   @PathVariable("letterid") BigInteger letterid) {
-        HashMap<BigInteger, Letter> userLetters = userDraftsMap.get(username);
+        HashMap<BigInteger, Letter> userLetters = database.userDraftsMap.get(username);
         if (userLetters == null) {
             return new ResponseEntity<Letter>(HttpStatus.NOT_FOUND);
         }
 
-        Letter letter = userDraftsMap.get(username).get(letterid);
+        Letter letter = database.userDraftsMap.get(username).get(letterid);
         if (letter == null) {
             return new ResponseEntity<Letter>(HttpStatus.NOT_FOUND);
         }
@@ -241,15 +250,17 @@ public class LetterController {
             produces=MediaType.APPLICATION_JSON_VALUE,
             consumes=MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<Response> saveDraft(@PathVariable("username") String username,
-                                              @RequestBody Letter letter) {
+    public ResponseEntity<IdContainer> saveDraft(@PathVariable("username") String username,
+                                                 @RequestBody Letter letter) {
         if (letter.getRecipient() == null) {
-            return new ResponseEntity<Response>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<IdContainer>(HttpStatus.BAD_REQUEST);
         }
-        Letter filledLetter = fillInLetter(username, letter);
-        saveLetterToHashMap(username, filledLetter, userDraftsMap);
+        // Testing - trying out PostOffice
+        Letter filledLetter = postOffice.fillLetterDetails(username, letter, letterId);
+                // fillLetterDetails(username, letter);
+        saveLetterToHashMap(username, filledLetter, database.userDraftsMap);
 
-        return new ResponseEntity<Response>(new Response(filledLetter.getId()), HttpStatus.OK);
+        return new ResponseEntity<IdContainer>(new IdContainer(filledLetter.getId()), HttpStatus.OK);
     }
 
     @RequestMapping(

@@ -2,10 +2,10 @@ package lt.inventi.messaging.domain;
 
 import java.math.BigInteger;
 
-public class Response {
+public class IdContainer {
     private BigInteger id;
 
-    public Response(BigInteger id) {
+    public IdContainer(BigInteger id) {
         this.id = id;
     }
 
