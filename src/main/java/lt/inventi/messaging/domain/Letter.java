@@ -3,9 +3,18 @@ package lt.inventi.messaging.domain;
 import java.math.BigInteger;
 
 public class Letter {
-    private String content;
     private BigInteger id;
+    private String content;
+    private String author;
     private String recipient;
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
 
     public String getRecipient() {
         return recipient;
