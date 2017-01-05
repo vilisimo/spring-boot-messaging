@@ -19,19 +19,36 @@ public class LetterController {
     private static HashMap<String, HashMap<BigInteger, Letter>> userInboxMap =
             new HashMap<String, HashMap<BigInteger, Letter>>(); // map of sent messages for each user.
 
+    /**
+     * ******* *
+     * HELPERS *
+     * ******* *
+     */
+
     private static Letter sendUserLetter(String username, Letter letter) {
+        Letter filledLetter = null;
         HashMap<BigInteger, Letter> userDrafts = userDraftsMap.get(username);
-        Letter draftLetter = userDrafts.remove(letter.getId());
-
-        String recipient = draftLetter.getRecipient();
-        HashMap<BigInteger, Letter> userInbox = userInboxMap.get(recipient);
-        if (userInbox == null) {
-            userInbox = new HashMap<BigInteger, Letter>();
-            userInboxMap.put(recipient, userInbox);
+        if (userDrafts != null) {
+            filledLetter = userDrafts.remove(letter.getId());
         }
-        userInbox.put(draftLetter.getId(), draftLetter);
 
-        return draftLetter;
+        if (filledLetter == null) {
+            filledLetter = fillInLetter(username, letter);
+        }
+        String recipient = filledLetter.getRecipient();
+        saveLetterToHashMap(recipient, letter, userInboxMap);
+
+        return filledLetter;
+    }
+
+    private static void saveLetterToHashMap(String username, Letter letter,
+                                              HashMap<String, HashMap<BigInteger, Letter>> hashMap) {
+        HashMap<BigInteger, Letter> userLetters = hashMap.get(username);
+        if (userLetters == null) {
+            userLetters = new HashMap<BigInteger, Letter>();
+            hashMap.put(username, userLetters);
+        }
+        userLetters.put(letter.getId(), letter);
     }
 
     private static boolean isInHashMap(String username, BigInteger letterid,
@@ -48,18 +65,10 @@ public class LetterController {
         return true;
     }
 
-    private static Letter saveLetterToDrafts(String username, Letter letter) {
-        HashMap<BigInteger, Letter> userDrafts = userDraftsMap.get(username);
-        if (userDrafts == null) {
-            userDrafts = new HashMap<BigInteger, Letter>();
-            userDraftsMap.put(username, userDrafts);
-        }
-
-        // Creation of letters
+    private static Letter fillInLetter(String username, Letter letter) {
         letter.setId(letterId);  // Make sure a letter has unique ID
         letterId = letterId.add(BigInteger.ONE);
         letter.setAuthor(username);  // Ensure draft's author is the same person as the one saving it.
-        userDrafts.put(letter.getId(), letter);
 
         return letter;
     }
@@ -79,9 +88,10 @@ public class LetterController {
 
             return letter;
         }
-        saveLetterToDrafts(username, letter);
+        Letter filledLetter = fillInLetter(username, letter);
+        saveLetterToHashMap(username, letter, userDraftsMap);
 
-        return letter;
+        return filledLetter;
     }
 
     private static boolean deleteLetter(String username, BigInteger letterId) {
@@ -100,12 +110,14 @@ public class LetterController {
         Letter draftInitial = new Letter();
         draftInitial.setContent("initial content");
         draftInitial.setRecipient("Two");
-        saveLetterToDrafts("one", draftInitial);
+        Letter filledLetter = fillInLetter("one", draftInitial);
+        saveLetterToHashMap("one", filledLetter, userDraftsMap);
 
         Letter draftInitial2 = new Letter();
         draftInitial2.setContent("initial content 2");
         draftInitial2.setRecipient("One");
-        saveLetterToDrafts("one", draftInitial2);
+        Letter filledLetter2 = fillInLetter("one", draftInitial2);
+        saveLetterToHashMap("one", filledLetter2, userDraftsMap);
     }
 
 
@@ -123,8 +135,8 @@ public class LetterController {
             consumes=MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<Letter> replyToLetter(@PathVariable("username") String username,
-                                                 @PathVariable("letterid") BigInteger letterid,
-                                                 @RequestBody Letter letter) {
+                                                @PathVariable("letterid") BigInteger letterid,
+                                                @RequestBody Letter letter) {
         boolean letterInInbox = isInHashMap(username, letterid, userInboxMap);
         if (!letterInInbox) {
             return new ResponseEntity<Letter>(HttpStatus.NOT_FOUND);
@@ -133,7 +145,7 @@ public class LetterController {
         Letter originalLetter = userInboxMap.get(username).get(letterid);
         String recipient = originalLetter.getAuthor();
         letter.setRecipient(recipient);
-        Letter reply = saveLetterToDrafts(username, letter);
+        Letter reply = fillInLetter(username, letter);
         Letter sentLetter = sendUserLetter(username, reply);
 
         return new ResponseEntity<Letter>(HttpStatus.OK);
@@ -149,9 +161,7 @@ public class LetterController {
                                               @PathVariable("letterid") BigInteger letterid,
                                               @RequestBody Letter letter) {
         boolean inDrafts = isInHashMap(username, letterid, userDraftsMap);
-        if (!inDrafts) {
-            saveLetterToDrafts(username, letter);
-        } else {
+        if (inDrafts) {
             editLetter(username, letterid, letter);
         }
         Letter sentLetter = sendUserLetter(username, letter);
@@ -236,9 +246,10 @@ public class LetterController {
         if (letter.getRecipient() == null) {
             return new ResponseEntity<Response>(HttpStatus.BAD_REQUEST);
         }
-        Letter sentLetter = saveLetterToDrafts(username, letter);
+        Letter filledLetter = fillInLetter(username, letter);
+        saveLetterToHashMap(username, filledLetter, userDraftsMap);
 
-        return new ResponseEntity<Response>(new Response(sentLetter.getId()), HttpStatus.OK);
+        return new ResponseEntity<Response>(new Response(filledLetter.getId()), HttpStatus.OK);
     }
 
     @RequestMapping(
