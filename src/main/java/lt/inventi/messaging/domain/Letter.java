@@ -3,7 +3,7 @@ package lt.inventi.messaging.domain;
 import java.math.BigInteger;
 
 public class Letter {
-    private BigInteger id;
+    private Long id;
     private String content;
     private String author;
     private String recipient;
@@ -24,11 +24,11 @@ public class Letter {
         this.recipient = recipient.toLowerCase();
     }
 
-    public BigInteger getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(BigInteger id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
