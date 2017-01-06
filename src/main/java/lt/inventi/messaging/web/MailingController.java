@@ -36,14 +36,12 @@ public class MailingController {
     public void saveDraft(@PathVariable("username") String username,
                                  @RequestBody @Valid Letter letter) {
         Long letterId = postOffice.saveDraft(username, letter);
-        // return new IdContainer(letterId);
     }
 
     @DeleteMapping(value="/users/{username}/drafts/{letterid}")
-    public ResponseEntity deleteDraft(@PathVariable("username") String username,
+    public void deleteDraft(@PathVariable("username") String username,
                                       @PathVariable("letterid") Long letterid) {
         postOffice.deleteDraft(username, letterid);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
     @PutMapping(value="/users/{username}/drafts/{letterid}", consumes=MediaType.APPLICATION_JSON_VALUE)
@@ -59,18 +57,16 @@ public class MailingController {
     }
 
     @PostMapping(value="/users/{username}/send/{letterid}")
-    public ResponseEntity sendLetter(@PathVariable("username") String username,
+    public void sendLetter(@PathVariable("username") String username,
                                      @PathVariable("letterid") Long letterid) {
         postOffice.sendLetter(username, letterid);
-        return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 
     @PostMapping(value="/users/{username}/inbox/{letterid}/reply", consumes=MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity replyToLetter(@PathVariable("username") String username,
+    public void replyToLetter(@PathVariable("username") String username,
                                         @PathVariable("letterid") Long letterid,
                                         @RequestBody Letter letter){
         Long replyID = LetterDatabase.getAndIncrementLetterID();
         postOffice.sendReply(username, letter, letterid, replyID);
-        return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 }
