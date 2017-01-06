@@ -20,6 +20,7 @@ public class PostOffice {
     }
 
     public void sendReply(String username, Letter letter) {
+        letter.setRecipient(letter.getAuthor());  // Original author of the message is the one who will receive a reply
         sendLetter(username, saveDraft(username, letter));
     }
 

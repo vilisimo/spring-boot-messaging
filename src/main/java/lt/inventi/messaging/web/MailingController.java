@@ -1,6 +1,7 @@
 package lt.inventi.messaging.web;
 
 import lt.inventi.messaging.database.LetterDatabase;
+import lt.inventi.messaging.domain.IdContainer;
 import lt.inventi.messaging.domain.Letter;
 import lt.inventi.messaging.mailing.Mailbox;
 import lt.inventi.messaging.mailing.PostOffice;
@@ -30,9 +31,9 @@ public class MailingController {
 
     @PostMapping(value="users/{username}/drafts", consumes=MediaType.APPLICATION_JSON_VALUE,
             produces=MediaType.APPLICATION_JSON_VALUE)
-    public void saveDraft(@PathVariable("username") String username,
-                          @RequestBody @Valid Letter letter) {
-        Long letterId = postOffice.saveDraft(username, letter);
+    public IdContainer saveDraft(@PathVariable("username") String username,
+                                 @RequestBody @Valid Letter letter) {
+        return new IdContainer(postOffice.saveDraft(username, letter));
     }
 
     @DeleteMapping(value="/users/{username}/drafts/{letterid}")
@@ -63,7 +64,6 @@ public class MailingController {
     public void replyToLetter(@PathVariable("username") String username,
                               @PathVariable("letterid") Long letterid,
                               @RequestBody Letter letter){
-        letter.setRecipient(letter.getAuthor());
         postOffice.sendReply(username, letter);
     }
 }
