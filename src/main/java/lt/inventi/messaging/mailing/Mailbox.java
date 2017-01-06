@@ -25,31 +25,20 @@ public class Mailbox {
         return database.getUserInbox(username);
     }
 
-    public Letter saveDraft(String username, Letter letter) {
-        if (letter.getRecipient() == null) {
-            return null;
-        }
-        // Should checks be in DB layer or Mailbox/PostOffice?
-        letter.setId(++letterID);
+    public Long saveDraft(String username, Letter letter) {
         letter.setAuthor(username);
+        letter.setId(++letterID);
         return database.saveDraftEntry(letter);
     }
 
-    public boolean deleteDraft(String username, Long letterid) {
-        boolean deleted = database.removeEntry(username, letterid);
-        return deleted;
+    public void deleteDraft(String username, Long letterid) {
+        database.removeEntry(username, letterid);
     }
 
-    public boolean editDraft(String username, Letter letter, Long letterid) {
-        // Recipient was dropped in an edit.
-        if (letter.getRecipient() == null) {
-            return false;
-        }
-
+    public void editDraft(String username, Letter letter, Long letterid) {
         letter.setId(letterid);
         letter.setAuthor(username);
-        letter.setContent(letter.getContent());
-        return database.updateEntry(letter);
+        database.updateEntry(letter);
     }
 
     public static Long getAndIncrementLetterID() {

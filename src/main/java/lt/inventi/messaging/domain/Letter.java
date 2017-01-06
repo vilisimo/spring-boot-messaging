@@ -1,11 +1,17 @@
 package lt.inventi.messaging.domain;
 
-import java.math.BigInteger;
+import org.hibernate.validator.constraints.NotEmpty;
+
+import javax.validation.constraints.NotNull;
 
 public class Letter {
     private Long id;
+    @NotNull
+    @NotEmpty
     private String content;
     private String author;
+    @NotNull
+    @NotEmpty
     private String recipient;
 
     public String getAuthor() {

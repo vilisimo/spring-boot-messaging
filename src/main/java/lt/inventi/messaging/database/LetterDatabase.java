@@ -1,6 +1,9 @@
 package lt.inventi.messaging.database;
 
 import lt.inventi.messaging.domain.Letter;
+import lt.inventi.messaging.exceptions.DraftNotFoundException;
+import lt.inventi.messaging.exceptions.InboxNotFoundException;
+import lt.inventi.messaging.exceptions.LetterNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -8,8 +11,8 @@ import java.util.HashMap;
 @Component
 public class LetterDatabase {
 
-    public HashMap<String, HashMap<Long, Letter>> userDraftsMap;  // HashMap of users. Each user has a HM of letters.
-    public HashMap<String, HashMap<Long, Letter>> userInboxMap; // map of sent messages f each user.
+    private HashMap<String, HashMap<Long, Letter>> userDraftsMap;  // HashMap of users. Each user has a map of letters.
+    private HashMap<String, HashMap<Long, Letter>> userInboxMap; // map of sent messages f each user.
 
     public LetterDatabase() {
         this.userDraftsMap = new HashMap<String, HashMap<Long, Letter>>();
@@ -17,22 +20,30 @@ public class LetterDatabase {
     }
 
     public HashMap<Long, Letter> getUserDrafts(String username) {
-        return userDraftsMap.get(username);
+        HashMap<Long, Letter> userDrafts = userDraftsMap.get(username);
+        if (userDrafts == null) {
+            userDrafts = new HashMap<Long, Letter>();
+        }
+        return userDrafts;
     }
 
     public HashMap<Long, Letter> getUserInbox(String username) {
-        return userInboxMap.get(username);
+        HashMap<Long, Letter> userInbox = userInboxMap.get(username);
+        if (userInbox == null) {
+            userInbox = new HashMap<Long, Letter>();
+        }
+        return userInbox;
     }
 
     public Letter getInboxLetter(String username, Long letterid) {
         HashMap<Long, Letter> userInbox = getUserInbox(username);
         if (userInbox == null) {
-            return null;
+            throw new InboxNotFoundException();
         }
         return userInbox.get(letterid);
     }
 
-    public Letter saveDraftEntry(Letter letter) {
+    public Long saveDraftEntry(Letter letter) {
         String author = letter.getAuthor();
         HashMap<Long, Letter> userDrafts = userDraftsMap.get(author);
         if (userDrafts == null) {
@@ -40,7 +51,8 @@ public class LetterDatabase {
             userDraftsMap.put(author, userDrafts);
         }
         userDrafts.put(letter.getId(), letter);
-        return letter;
+
+        return letter.getId();
     }
 
     public Letter saveInboxEntry(Letter letter) {
@@ -54,21 +66,19 @@ public class LetterDatabase {
         return letter;
     }
 
-    public boolean removeEntry(String username, Long letterid) {
+    public Letter removeEntry(String username, Long letterid) {
         HashMap<Long, Letter> userDrafts = userDraftsMap.get(username);
         if (userDrafts == null) {
-            return false;
+            throw new DraftNotFoundException();
         }
-        Letter removedLetter = userDrafts.remove(letterid);
-        return removedLetter != null;
+        return userDrafts.remove(letterid);
     }
 
-    public boolean updateEntry(Letter letter) {
-        boolean removed = removeEntry(letter.getAuthor(), letter.getId());
-        if (!removed) {
-            return false;
+    public void updateEntry(Letter letter) {
+        Letter removed = removeEntry(letter.getAuthor(), letter.getId());
+        if (removed == null) {
+            throw new LetterNotFoundException();
         }
         userDraftsMap.get(letter.getAuthor()).put(letter.getId(), letter);
-        return true;
     }
 }

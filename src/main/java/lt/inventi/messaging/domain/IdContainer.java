@@ -1,7 +1,5 @@
 package lt.inventi.messaging.domain;
 
-import java.math.BigInteger;
-
 public class IdContainer {
     private Long id;
 
