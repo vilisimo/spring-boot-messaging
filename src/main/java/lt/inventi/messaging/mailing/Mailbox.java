@@ -24,24 +24,4 @@ public class Mailbox {
     public HashMap<Long, Letter> getUserInbox(String username) {
         return database.getUserInbox(username);
     }
-
-    public Long saveDraft(String username, Letter letter) {
-        letter.setAuthor(username);
-        letter.setId(++letterID);
-        return database.saveDraftEntry(letter);
-    }
-
-    public void deleteDraft(String username, Long letterid) {
-        database.removeEntry(username, letterid);
-    }
-
-    public void editDraft(String username, Letter letter, Long letterid) {
-        letter.setId(letterid);
-        letter.setAuthor(username);
-        database.updateEntry(letter);
-    }
-
-    public static Long getAndIncrementLetterID() {
-        return ++letterID;
-    }
 }

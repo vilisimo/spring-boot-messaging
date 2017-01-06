@@ -13,6 +13,7 @@ public class LetterDatabase {
 
     private HashMap<String, HashMap<Long, Letter>> userDraftsMap;  // HashMap of users. Each user has a map of letters.
     private HashMap<String, HashMap<Long, Letter>> userInboxMap; // map of sent messages f each user.
+    private static Long letterID = 0L;
 
     public LetterDatabase() {
         this.userDraftsMap = new HashMap<String, HashMap<Long, Letter>>();
@@ -43,16 +44,16 @@ public class LetterDatabase {
         return userInbox.get(letterid);
     }
 
-    public Long saveDraftEntry(Letter letter) {
+    public Letter saveDraftEntry(Letter letter) {
         String author = letter.getAuthor();
         HashMap<Long, Letter> userDrafts = userDraftsMap.get(author);
         if (userDrafts == null) {
             userDrafts = new HashMap<Long, Letter>();
             userDraftsMap.put(author, userDrafts);
         }
+        letter.setId(++letterID);
         userDrafts.put(letter.getId(), letter);
-
-        return letter.getId();
+        return letter;
     }
 
     public Letter saveInboxEntry(Letter letter) {
@@ -81,4 +82,9 @@ public class LetterDatabase {
         }
         userDraftsMap.get(letter.getAuthor()).put(letter.getId(), letter);
     }
+
+    public static Long getAndIncrementLetterID() {
+        return ++letterID;
+    }
+
 }

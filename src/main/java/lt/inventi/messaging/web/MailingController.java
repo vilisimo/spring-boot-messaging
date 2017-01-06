@@ -1,5 +1,6 @@
 package lt.inventi.messaging.web;
 
+import lt.inventi.messaging.database.LetterDatabase;
 import lt.inventi.messaging.domain.IdContainer;
 import lt.inventi.messaging.domain.Letter;
 import lt.inventi.messaging.mailing.Mailbox;
@@ -32,16 +33,16 @@ public class MailingController {
 
     @PostMapping(value="users/{username}/drafts", consumes=MediaType.APPLICATION_JSON_VALUE,
             produces=MediaType.APPLICATION_JSON_VALUE)
-    public IdContainer saveDraft(@PathVariable("username") String username,
+    public void saveDraft(@PathVariable("username") String username,
                                  @RequestBody @Valid Letter letter) {
-        Long letterId = mailbox.saveDraft(username, letter);
-        return new IdContainer(letterId);
+        Long letterId = postOffice.saveDraft(username, letter);
+        // return new IdContainer(letterId);
     }
 
     @DeleteMapping(value="/users/{username}/drafts/{letterid}")
     public ResponseEntity deleteDraft(@PathVariable("username") String username,
                                       @PathVariable("letterid") Long letterid) {
-        mailbox.deleteDraft(username, letterid);
+        postOffice.deleteDraft(username, letterid);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
@@ -49,7 +50,7 @@ public class MailingController {
     public void editDraft(@PathVariable("username") String username,
                           @PathVariable("letterid") Long letterid,
                           @RequestBody @Valid Letter letter) {
-        mailbox.editDraft(username, letter, letterid);
+        postOffice.editDraft(username, letter, letterid);
     }
 
     @GetMapping(value="/users/{username}/inbox", produces=MediaType.APPLICATION_JSON_VALUE)
@@ -68,7 +69,7 @@ public class MailingController {
     public ResponseEntity replyToLetter(@PathVariable("username") String username,
                                         @PathVariable("letterid") Long letterid,
                                         @RequestBody Letter letter){
-        Long replyID = Mailbox.getAndIncrementLetterID();
+        Long replyID = LetterDatabase.getAndIncrementLetterID();
         postOffice.sendReply(username, letter, letterid, replyID);
         return ResponseEntity.status(HttpStatus.OK).body(null);
     }

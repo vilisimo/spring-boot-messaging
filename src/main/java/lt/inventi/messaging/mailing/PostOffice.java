@@ -30,4 +30,21 @@ public class PostOffice {
         letter.setId(replyid);
         database.saveInboxEntry(letter);
     }
+
+    public Long saveDraft(String username, Letter letter) {
+        letter.setAuthor(username);
+        // letter.setId(++letterID);
+        letter = database.saveDraftEntry(letter);
+        return letter.getId();
+    }
+
+    public void deleteDraft(String username, Long letterid) {
+        database.removeEntry(username, letterid);
+    }
+
+    public void editDraft(String username, Letter letter, Long letterid) {
+        letter.setId(letterid);
+        letter.setAuthor(username);
+        database.updateEntry(letter);
+    }
 }
