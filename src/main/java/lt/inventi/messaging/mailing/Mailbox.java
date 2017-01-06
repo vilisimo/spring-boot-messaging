@@ -9,7 +9,6 @@ import java.util.HashMap;
 
 @Service
 public class Mailbox {
-    private static Long letterID = 0L;
     private final LetterDatabase database;
 
     @Autowired

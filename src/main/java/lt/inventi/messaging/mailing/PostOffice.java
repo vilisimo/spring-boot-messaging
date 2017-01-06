@@ -15,35 +15,34 @@ public class PostOffice {
         this.database = database;
     }
 
-    public void sendLetter(String username, Long letterid) {
-        Letter removedFromDrafts = database.removeEntry(username, letterid);
+    public void sendLetter(String username, Long letterId) {
+        Letter removedFromDrafts = database.removeEntry(username, letterId);
         database.saveInboxEntry(removedFromDrafts);
     }
 
-    public void sendReply(String username, Letter letter, Long letterid, Long replyid) {
-        Letter originalLetter = database.getInboxLetter(username, letterid);
+    public void sendReply(String username, Letter letter, Long letterId, Long replyId) {
+        Letter originalLetter = database.getInboxLetter(username, letterId);
         if (originalLetter == null) {
             throw new LetterNotFoundException();
         }
         letter.setRecipient(originalLetter.getAuthor());
         letter.setAuthor(username);
-        letter.setId(replyid);
+        letter.setId(replyId);
         database.saveInboxEntry(letter);
     }
 
     public Long saveDraft(String username, Letter letter) {
         letter.setAuthor(username);
-        // letter.setId(++letterID);
         letter = database.saveDraftEntry(letter);
         return letter.getId();
     }
 
-    public void deleteDraft(String username, Long letterid) {
-        database.removeEntry(username, letterid);
+    public void deleteDraft(String username, Long letterId) {
+        database.removeEntry(username, letterId);
     }
 
-    public void editDraft(String username, Letter letter, Long letterid) {
-        letter.setId(letterid);
+    public void editDraft(String username, Letter letter, Long letterId) {
+        letter.setId(letterId);
         letter.setAuthor(username);
         database.updateEntry(letter);
     }
