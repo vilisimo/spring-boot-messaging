@@ -2,7 +2,6 @@ package lt.inventi.messaging.mailing;
 
 import lt.inventi.messaging.database.LetterDatabase;
 import lt.inventi.messaging.domain.Letter;
-import lt.inventi.messaging.exceptions.LetterNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,15 +19,8 @@ public class PostOffice {
         database.saveInboxEntry(removedFromDrafts);
     }
 
-    public void sendReply(String username, Letter letter, Long letterId, Long replyId) {
-        Letter originalLetter = database.getInboxLetter(username, letterId);
-        if (originalLetter == null) {
-            throw new LetterNotFoundException();
-        }
-        letter.setRecipient(originalLetter.getAuthor());
-        letter.setAuthor(username);
-        letter.setId(replyId);
-        database.saveInboxEntry(letter);
+    public void sendReply(String username, Letter letter) {
+        sendLetter(username, saveDraft(username, letter));
     }
 
     public Long saveDraft(String username, Letter letter) {

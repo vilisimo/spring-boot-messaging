@@ -1,14 +1,11 @@
 package lt.inventi.messaging.web;
 
 import lt.inventi.messaging.database.LetterDatabase;
-import lt.inventi.messaging.domain.IdContainer;
 import lt.inventi.messaging.domain.Letter;
 import lt.inventi.messaging.mailing.Mailbox;
 import lt.inventi.messaging.mailing.PostOffice;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -34,13 +31,13 @@ public class MailingController {
     @PostMapping(value="users/{username}/drafts", consumes=MediaType.APPLICATION_JSON_VALUE,
             produces=MediaType.APPLICATION_JSON_VALUE)
     public void saveDraft(@PathVariable("username") String username,
-                                 @RequestBody @Valid Letter letter) {
+                          @RequestBody @Valid Letter letter) {
         Long letterId = postOffice.saveDraft(username, letter);
     }
 
     @DeleteMapping(value="/users/{username}/drafts/{letterid}")
     public void deleteDraft(@PathVariable("username") String username,
-                                      @PathVariable("letterid") Long letterid) {
+                            @PathVariable("letterid") Long letterid) {
         postOffice.deleteDraft(username, letterid);
     }
 
@@ -58,15 +55,15 @@ public class MailingController {
 
     @PostMapping(value="/users/{username}/send/{letterid}")
     public void sendLetter(@PathVariable("username") String username,
-                                     @PathVariable("letterid") Long letterid) {
+                           @PathVariable("letterid") Long letterid) {
         postOffice.sendLetter(username, letterid);
     }
 
     @PostMapping(value="/users/{username}/inbox/{letterid}/reply", consumes=MediaType.APPLICATION_JSON_VALUE)
     public void replyToLetter(@PathVariable("username") String username,
-                                        @PathVariable("letterid") Long letterid,
-                                        @RequestBody Letter letter){
-        Long replyID = LetterDatabase.getAndIncrementLetterID();
-        postOffice.sendReply(username, letter, letterid, replyID);
+                              @PathVariable("letterid") Long letterid,
+                              @RequestBody Letter letter){
+        letter.setRecipient(letter.getAuthor());
+        postOffice.sendReply(username, letter, letterid);
     }
 }
