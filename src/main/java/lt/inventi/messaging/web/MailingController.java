@@ -64,6 +64,6 @@ public class MailingController {
                               @PathVariable("letterid") Long letterid,
                               @RequestBody Letter letter){
         letter.setRecipient(letter.getAuthor());
-        postOffice.sendReply(username, letter, letterid);
+        postOffice.sendReply(username, letter);
     }
 }
