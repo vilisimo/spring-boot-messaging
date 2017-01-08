@@ -1,6 +1,5 @@
 package lt.inventi.messaging.web;
 
-import lt.inventi.messaging.database.LetterDatabase;
 import lt.inventi.messaging.domain.IdContainer;
 import lt.inventi.messaging.domain.Letter;
 import lt.inventi.messaging.mailing.Mailbox;

@@ -1,21 +1,21 @@
 package lt.inventi.messaging.mailing;
 
-import lt.inventi.messaging.database.LetterDatabase;
+import lt.inventi.messaging.database.LetterDataSource;
 import lt.inventi.messaging.domain.Letter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class PostOffice {
-    private final LetterDatabase database;
+    private final LetterDataSource database;
 
     @Autowired
-    public PostOffice(LetterDatabase database) {
+    public PostOffice(LetterDataSource database) {
         this.database = database;
     }
 
     public void sendLetter(String username, Long letterId) {
-        Letter removedFromDrafts = database.removeEntry(username, letterId);
+        Letter removedFromDrafts = database.removeDraftEntry(username, letterId);
         database.saveInboxEntry(removedFromDrafts);
     }
 
@@ -31,7 +31,7 @@ public class PostOffice {
     }
 
     public void deleteDraft(String username, Long letterId) {
-        database.removeEntry(username, letterId);
+        database.removeDraftEntry(username, letterId);
     }
 
     public void editDraft(String username, Letter letter, Long letterId) {
