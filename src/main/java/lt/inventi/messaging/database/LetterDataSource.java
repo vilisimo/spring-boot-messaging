@@ -69,7 +69,7 @@ public class LetterDataSource {
         if (removed == null) {
             throw new LetterNotFoundException();
         }
-        return userDrafts.remove(letterId);
+        return removed;
     }
 
     public void updateEntry(Letter letter) {
