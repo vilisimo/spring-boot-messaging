@@ -17,7 +17,6 @@ public class PostOffice {
     public void saveDraft(String username, Letter letter) {
         letter.setAuthor(username);
         database.saveDraftEntry(letter);
-        // return letter.getId();
     }
 
     public void deleteDraft(String username, Long letterId) {
