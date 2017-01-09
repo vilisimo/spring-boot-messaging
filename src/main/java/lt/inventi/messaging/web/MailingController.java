@@ -29,14 +29,12 @@ public class MailingController {
 
     @PostMapping(value="users/{username}/drafts", consumes=MediaType.APPLICATION_JSON_VALUE,
             produces=MediaType.APPLICATION_JSON_VALUE)
-    public void saveDraft(@PathVariable("username") String username,
-                          @RequestBody @Valid Letter letter) {
+    public void saveDraft(@PathVariable("username") String username, @RequestBody @Valid Letter letter) {
         postOffice.saveDraft(username, letter);
     }
 
     @DeleteMapping(value="/users/{username}/drafts/{letterid}")
-    public void deleteDraft(@PathVariable("username") String username,
-                            @PathVariable("letterid") Long letterid) {
+    public void deleteDraft(@PathVariable("username") String username, @PathVariable("letterid") Long letterid) {
         postOffice.deleteDraft(username, letterid);
     }
 
