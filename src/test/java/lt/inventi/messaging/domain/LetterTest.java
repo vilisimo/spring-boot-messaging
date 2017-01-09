@@ -13,5 +13,4 @@ public class LetterTest {
 
         assertEquals("test", recipient);
     }
-
 }

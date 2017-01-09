@@ -4,7 +4,6 @@ import lt.inventi.messaging.domain.Letter;
 
 import lt.inventi.messaging.exceptions.DraftNotFoundException;
 import lt.inventi.messaging.exceptions.LetterNotFoundException;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
