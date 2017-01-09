@@ -30,9 +30,9 @@ public class MailingController {
 
     @PostMapping(value="users/{username}/drafts", consumes=MediaType.APPLICATION_JSON_VALUE,
             produces=MediaType.APPLICATION_JSON_VALUE)
-    public IdContainer saveDraft(@PathVariable("username") String username,
+    public void saveDraft(@PathVariable("username") String username,
                                  @RequestBody @Valid Letter letter) {
-        return new IdContainer(postOffice.saveDraft(username, letter));
+        postOffice.saveDraft(username, letter);
     }
 
     @DeleteMapping(value="/users/{username}/drafts/{letterid}")
@@ -53,7 +53,7 @@ public class MailingController {
         return mailbox.getUserInbox(username);
     }
 
-    @PostMapping(value="/users/{username}/send/{letterid}")
+    @PostMapping(value="/users/{username}/drafts/{letterid}/send")
     public void sendLetter(@PathVariable("username") String username,
                            @PathVariable("letterid") Long letterid) {
         postOffice.sendLetter(username, letterid);

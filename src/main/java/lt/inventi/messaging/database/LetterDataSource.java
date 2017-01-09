@@ -36,7 +36,7 @@ public class LetterDataSource {
         return userInbox;
     }
 
-    public Letter saveDraftEntry(Letter letter) {
+    public void saveDraftEntry(Letter letter) {
         String author = letter.getAuthor();
         HashMap<Long, Letter> userDrafts = userDraftsMap.get(author);
         if (userDrafts == null) {
@@ -45,10 +45,10 @@ public class LetterDataSource {
         }
         letter.setId(++LETTER_ID);
         userDrafts.put(letter.getId(), letter);
-        return letter;
+        // return letter;
     }
 
-    public Letter saveInboxEntry(Letter letter) {
+    public void saveInboxEntry(Letter letter) {
         String recipient = letter.getRecipient();
         HashMap<Long, Letter> userInbox = userInboxMap.get(recipient);
         if (userInbox == null) {
@@ -56,10 +56,10 @@ public class LetterDataSource {
             userInboxMap.put(recipient, userInbox);
         }
         userInbox.put(letter.getId(), letter);
-        return letter;
+        // return letter;
     }
 
-    public Letter removeDraftEntry(String username, Long letterId) {
+    public void removeDraftEntry(String username, Long letterId) {
         HashMap<Long, Letter> userDrafts = userDraftsMap.get(username);
         if (userDrafts == null) {
             throw new DraftNotFoundException();
@@ -69,7 +69,6 @@ public class LetterDataSource {
         if (removed == null) {
             throw new LetterNotFoundException();
         }
-        return removed;
     }
 
     public void updateEntry(Letter letter) {

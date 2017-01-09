@@ -14,10 +14,10 @@ public class PostOffice {
         this.database = database;
     }
 
-    public Long saveDraft(String username, Letter letter) {
+    public void saveDraft(String username, Letter letter) {
         letter.setAuthor(username);
-        letter = database.saveDraftEntry(letter);
-        return letter.getId();
+        database.saveDraftEntry(letter);
+        // return letter.getId();
     }
 
     public void deleteDraft(String username, Long letterId) {
@@ -31,13 +31,15 @@ public class PostOffice {
     }
 
     public void sendLetter(String username, Long letterId) {
-        Letter removedFromDrafts = database.removeDraftEntry(username, letterId);
-        database.saveInboxEntry(removedFromDrafts);
+        Letter letter = database.getUserDrafts(username).get(letterId);
+        database.removeDraftEntry(username, letterId);
+        database.saveInboxEntry(letter);
     }
 
     // username: the one who replies to the letter
     public void sendReply(String username, Letter letter) {
         letter.setRecipient(letter.getAuthor());
-        sendLetter(username, saveDraft(username, letter));
+        saveDraft(username, letter);
+        sendLetter(username, letter.getId());
     }
 }
