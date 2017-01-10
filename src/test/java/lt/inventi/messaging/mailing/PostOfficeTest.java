@@ -25,7 +25,7 @@ public class PostOfficeTest {
     }
 
     @Test
-    public void shouldSendLetter() {
+    public void sendLetter_shouldSendLetter() {
         Letter letter = new Letter();
         HashMap<Long, Letter> stubHash = new HashMap<Long, Letter>();
         stubHash.put(1L, letter);
@@ -37,7 +37,7 @@ public class PostOfficeTest {
     }
 
     @Test
-    public void shouldSaveDraft() {
+    public void saveDraftEntry_shouldSaveDraft() {
         String username = "test";
         Letter letter = new Letter();
         postOffice.saveDraft(username, letter);
@@ -47,13 +47,13 @@ public class PostOfficeTest {
     }
 
     @Test
-    public void shouldDeleteDraft() {
+    public void removeDraftEntry_shouldDeleteDraft() {
         postOffice.deleteDraft("test", 1L);
         verify(mockDataSource).removeDraftEntry("test", 1L);
     }
 
     @Test
-    public void shouldEditDraft() {
+    public void updateEntry_shouldUpdateDraft() {
         Letter letter = new Letter();
         String author = "test";
         Long id = 1L;
@@ -65,7 +65,7 @@ public class PostOfficeTest {
     }
 
     @Test
-    public void shouldSendReply() {
+    public void sendReply_shouldSendReply() {
         Letter letter = new Letter();
         String sender = "repliesToLetter";
         String originalAuthor = "future_recipient";

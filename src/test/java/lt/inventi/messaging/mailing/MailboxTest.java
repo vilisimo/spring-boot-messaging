@@ -26,14 +26,14 @@ public class MailboxTest {
     }
 
     @Test
-    public void getUserDrafts() {
+    public void getUserDrafts_shouldReturnUserDrafts() {
         when(dataSource.getUserDrafts("test")).thenReturn(stub);
         HashMap<Long, Letter> actualDraft = mailbox.getUserDrafts("test");
         assertEquals(stub, actualDraft);
     }
 
     @Test
-    public void getUserInbox() {
+    public void getUserInbox_shouldReturnUserInbox() {
         when(dataSource.getUserInbox("test")).thenReturn(stub);
         HashMap<Long, Letter> actualInbox = mailbox.getUserInbox("test");
         assertEquals(stub, actualInbox);
