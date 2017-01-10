@@ -10,17 +10,17 @@ import java.util.HashMap;
 public class LetterDataSource {
 
 
-    private final HashMap<String, HashMap<Long, Letter>> userDraftsMap;  // Each user has a map of letters.
-    private final HashMap<String, HashMap<Long, Letter>> userInboxMap; // Map of sent messages of each user.
+    private final HashMap<String, HashMap<Long, Letter>> usersDraftsCollection;  // Each user has a map of letters.
+    private final HashMap<String, HashMap<Long, Letter>> usersInboxCollection; // Map of sent messages of each user.
     private Long LETTER_ID = 0L;
 
     public LetterDataSource() {
-        this.userDraftsMap = new HashMap<String, HashMap<Long, Letter>>();
-        this.userInboxMap = new HashMap<String, HashMap<Long, Letter>>();
+        this.usersDraftsCollection = new HashMap<String, HashMap<Long, Letter>>();
+        this.usersInboxCollection = new HashMap<String, HashMap<Long, Letter>>();
     }
 
     public HashMap<Long, Letter> getUserDrafts(String username) {
-        HashMap<Long, Letter> userDrafts = userDraftsMap.get(username);
+        HashMap<Long, Letter> userDrafts = usersDraftsCollection.get(username);
         if (userDrafts == null) {
             userDrafts = new HashMap<Long, Letter>();
         }
@@ -28,7 +28,7 @@ public class LetterDataSource {
     }
 
     public HashMap<Long, Letter> getUserInbox(String username) {
-        HashMap<Long, Letter> userInbox = userInboxMap.get(username);
+        HashMap<Long, Letter> userInbox = usersInboxCollection.get(username);
         if (userInbox == null) {
             userInbox = new HashMap<Long, Letter>();
         }
@@ -37,10 +37,10 @@ public class LetterDataSource {
 
     public void saveDraftEntry(Letter letter) {
         String author = letter.getAuthor();
-        HashMap<Long, Letter> userDrafts = userDraftsMap.get(author);
+        HashMap<Long, Letter> userDrafts = usersDraftsCollection.get(author);
         if (userDrafts == null) {
             userDrafts = new HashMap<Long, Letter>();
-            userDraftsMap.put(author, userDrafts);
+            usersDraftsCollection.put(author, userDrafts);
         }
         letter.setId(++LETTER_ID);
         userDrafts.put(letter.getId(), letter);
@@ -49,17 +49,17 @@ public class LetterDataSource {
 
     public void saveInboxEntry(Letter letter) {
         String recipient = letter.getRecipient();
-        HashMap<Long, Letter> userInbox = userInboxMap.get(recipient);
+        HashMap<Long, Letter> userInbox = usersInboxCollection.get(recipient);
         if (userInbox == null) {
             userInbox = new HashMap<Long, Letter>();
-            userInboxMap.put(recipient, userInbox);
+            usersInboxCollection.put(recipient, userInbox);
         }
         userInbox.put(letter.getId(), letter);
         // return letter;
     }
 
     public void removeDraftEntry(String username, Long letterId) {
-        HashMap<Long, Letter> userDrafts = userDraftsMap.get(username);
+        HashMap<Long, Letter> userDrafts = usersDraftsCollection.get(username);
         if (userDrafts == null) {
             throw new ResourceNotFoundException();
         }
@@ -72,14 +72,14 @@ public class LetterDataSource {
 
     public void updateEntry(Letter letter) {
         removeDraftEntry(letter.getAuthor(), letter.getId());
-        userDraftsMap.get(letter.getAuthor()).put(letter.getId(), letter);
+        usersDraftsCollection.get(letter.getAuthor()).put(letter.getId(), letter);
     }
 
-    public HashMap<String, HashMap<Long, Letter>> getUserDraftsMap() {
-        return userDraftsMap;
+    public HashMap<String, HashMap<Long, Letter>> getUsersDraftsCollection() {
+        return usersDraftsCollection;
     }
 
-    public HashMap<String, HashMap<Long, Letter>> getUserInboxMap() {
-        return userInboxMap;
+    public HashMap<String, HashMap<Long, Letter>> getUsersInboxCollection() {
+        return usersInboxCollection;
     }
 }

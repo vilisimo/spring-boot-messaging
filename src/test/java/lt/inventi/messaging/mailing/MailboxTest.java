@@ -17,7 +17,7 @@ public class MailboxTest {
 
     @Before
     public void setUp() {
-        stub = new HashMap<Long, Letter>();
+        HashMap<Long, Letter> stub = new HashMap<Long, Letter>();
         dataSource = mock(LetterDataSource.class);
         Letter letter = new Letter();
         letter.setContent("content");

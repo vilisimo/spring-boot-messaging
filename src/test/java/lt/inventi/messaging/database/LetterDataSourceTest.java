@@ -19,9 +19,9 @@ public class LetterDataSourceTest {
     }
 
     @Test
-    public void getUserDrafts() {
+    public void getUserDrafts_shouldReturnNonEmptyUserDrafts() {
         String user = "test";
-        HashMap<String, HashMap<Long, Letter>> userDraftsMap = db.getUserDraftsMap();
+        HashMap<String, HashMap<Long, Letter>> userDraftsMap = db.getUsersDraftsCollection();
         HashMap<Long, Letter> stubDraft = new HashMap<Long, Letter>();
         userDraftsMap.put(user, stubDraft);
         HashMap<Long, Letter> actualDraft = db.getUserDrafts(user);
@@ -29,8 +29,8 @@ public class LetterDataSourceTest {
     }
 
     @Test
-    public void getUserDraftsCreatesEmptyDraftWhenNoDraftFound() {
-        HashMap<String, HashMap<Long, Letter>> userDraftsMap = db.getUserDraftsMap();
+    public void getUserDrafts_ShouldCreateEmptyDraftWhenNoDraftFound() {
+        HashMap<String, HashMap<Long, Letter>> userDraftsMap = db.getUsersDraftsCollection();
         HashMap<Long, Letter> nonExistentUserDrafts = userDraftsMap.get("test");
         assertNull(nonExistentUserDrafts);
 
@@ -39,9 +39,9 @@ public class LetterDataSourceTest {
     }
 
     @Test
-    public void getUserInbox() throws Exception {
+    public void getUserInbox_shouldReturnNonEmptyUserInbox() throws Exception {
         String user = "test";
-        HashMap<String, HashMap<Long, Letter>> userInboxMap = db.getUserInboxMap();
+        HashMap<String, HashMap<Long, Letter>> userInboxMap = db.getUsersInboxCollection();
         HashMap<Long, Letter> stubInbox = new HashMap<Long, Letter>();
         userInboxMap.put(user, stubInbox);
         HashMap<Long, Letter> actualInbox = db.getUserInbox(user);
@@ -49,8 +49,8 @@ public class LetterDataSourceTest {
     }
 
     @Test
-    public void getUserDraftsCreatesEmptyInboxWhenNoDraftFound() {
-        HashMap<String, HashMap<Long, Letter>> userInboxMap = db.getUserInboxMap();
+    public void getUserDrafts_shouldCreateEmptyInboxWhenNoDraftFound() {
+        HashMap<String, HashMap<Long, Letter>> userInboxMap = db.getUsersInboxCollection();
         HashMap<Long, Letter> nonExistentUserInbox = userInboxMap.get("test");
         assertNull(nonExistentUserInbox);
 
@@ -59,7 +59,7 @@ public class LetterDataSourceTest {
     }
 
     @Test
-    public void saveDraftEntryAssignsID() {
+    public void saveDraftEntry_shouldAssignIDToLetter() {
         Letter draft = new Letter();
         draft.setAuthor("test");
         db.saveDraftEntry(draft);
@@ -72,7 +72,7 @@ public class LetterDataSourceTest {
     }
 
     @Test
-    public void saveDraftEntryPutsInMapWhenUserDraftsDoNotExist() {
+    public void saveDraftEntry_shouldCreateUserDraftListWhenItDoesNotExist() {
         Letter draft = new Letter();
         String author = "test";
         draft.setAuthor(author);
@@ -83,11 +83,11 @@ public class LetterDataSourceTest {
     }
 
     @Test
-    public void saveDraftEntryPutsInMapWhenUserDraftsExist() {
+    public void saveDraftEntry_shouldPutInDraftListWhenUserDraftListExists() {
         String author = "test";
         Letter letter = new Letter();
         letter.setAuthor(author);
-        HashMap<String, HashMap<Long, Letter>> userDraftsMap = db.getUserDraftsMap();
+        HashMap<String, HashMap<Long, Letter>> userDraftsMap = db.getUsersDraftsCollection();
         HashMap<Long, Letter> authorDrafts = new HashMap<Long, Letter>();
         userDraftsMap.put(author, authorDrafts);
         db.saveDraftEntry(letter);
@@ -96,7 +96,7 @@ public class LetterDataSourceTest {
     }
 
     @Test
-    public void saveInboxEntryPutsInMapWhenUserDraftsDoNotExist() throws Exception {
+    public void saveInboxEntry_shouldPutInInboxMessagesWhenInboxDoesNotExist() throws Exception {
         Letter draft = new Letter();
         String recipient = "test";
         draft.setRecipient(recipient);
@@ -108,12 +108,12 @@ public class LetterDataSourceTest {
     }
 
     @Test
-    public void saveInboxEntryPutsInMapWhenUserDraftsExist() {
+    public void saveInboxEntry_shouldPutInInboxMessagesWhenInboxExists() {
         String recipient = "test";
         Letter letter = new Letter();
         letter.setRecipient(recipient);
         letter.setId(1L);
-        HashMap<String, HashMap<Long, Letter>> userInboxMap = db.getUserInboxMap();
+        HashMap<String, HashMap<Long, Letter>> userInboxMap = db.getUsersInboxCollection();
         HashMap<Long, Letter> recipientInbox = new HashMap<Long, Letter>();
         userInboxMap.put(recipient, recipientInbox);
         db.saveInboxEntry(letter);
@@ -122,7 +122,7 @@ public class LetterDataSourceTest {
     }
 
     @Test
-    public void removeDraftEntryWhenItExits() {
+    public void removeDraftEntry_shouldRemoveDraftEntryWhenItExits() {
         Letter draftEntry = new Letter();
         String author = "test";
         draftEntry.setAuthor(author);
@@ -134,12 +134,12 @@ public class LetterDataSourceTest {
     }
 
     @Test(expected=ResourceNotFoundException.class)
-    public void removeDraftEntryWhenDraftsDoNotExist() {
+    public void removeDraftEntry_shouldThrowExceptionWhenDraftListDoesNotExist() {
         db.removeDraftEntry("test", 1L);
     }
 
     @Test(expected=ResourceNotFoundException.class)
-    public void removeDraftEntryWhenItDoesNotExist() {
+    public void removeDraftEntry_shouldThrowExceptionWhenLetterDoesNotExist() {
         Letter draftEntry = new Letter();
         String author = "test";
         draftEntry.setAuthor(author);
@@ -152,7 +152,7 @@ public class LetterDataSourceTest {
     }
 
     @Test
-    public void updateEntryWhenItExists() {
+    public void updateEntry_shouldUpdateDraftLetterWhenItExists() {
         String author = "test";
 
         Letter oldLetter = new Letter();
@@ -164,7 +164,6 @@ public class LetterDataSourceTest {
         updatedLetter.setContent("content");
         updatedLetter.setId(1L);
 
-        HashMap<Long, Letter> authorDrafts = db.getUserDrafts(author);
         db.saveDraftEntry(oldLetter);
         // Check if the hash map exists/has the entry in the first place; that old letter content is empty.
         assertTrue(db.getUserDrafts(author).containsKey(oldLetter.getId()));

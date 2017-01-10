@@ -38,14 +38,12 @@ public class MailingControllerTest {
     private PostOffice postOffice;
 
     @Captor
-    ArgumentCaptor<Letter> letterCaptor;
+    private ArgumentCaptor<Letter> letterCaptor;
 
     private static final String TEST_USERNAME = "test-user";
     private static final String TEST_RECIPIENT = "test content";
     private static final String TEST_CONTENT = "test-recipient";
 
-
-    // capture stuff from mvc.perform
 
     @Test
     public void testViewDrafts_shouldReturnEmptyListOfDraftsAnd200() throws Exception {
