@@ -1,8 +1,7 @@
 package lt.inventi.messaging.database;
 
 import lt.inventi.messaging.domain.Letter;
-import lt.inventi.messaging.exceptions.DraftsNotFoundException;
-import lt.inventi.messaging.exceptions.LetterNotFoundException;
+import lt.inventi.messaging.exceptions.ResourceNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -62,12 +61,12 @@ public class LetterDataSource {
     public void removeDraftEntry(String username, Long letterId) {
         HashMap<Long, Letter> userDrafts = userDraftsMap.get(username);
         if (userDrafts == null) {
-            throw new DraftsNotFoundException();
+            throw new ResourceNotFoundException();
         }
 
         Letter removed = userDrafts.remove(letterId);
         if (removed == null) {
-            throw new LetterNotFoundException();
+            throw new ResourceNotFoundException();
         }
     }
 

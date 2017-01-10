@@ -2,13 +2,14 @@ package lt.inventi.messaging.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lt.inventi.messaging.domain.Letter;
-import lt.inventi.messaging.exceptions.DraftsNotFoundException;
-import lt.inventi.messaging.exceptions.LetterNotFoundException;
+import lt.inventi.messaging.exceptions.ResourceNotFoundException;
 import lt.inventi.messaging.mailing.Mailbox;
 import lt.inventi.messaging.mailing.PostOffice;
 import org.json.JSONObject;
 import org.junit.*;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -18,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.HashMap;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -35,177 +37,219 @@ public class MailingControllerTest {
     @MockBean
     private PostOffice postOffice;
 
-    private JSONObject json;
-    private String username;
+    @Captor
+    ArgumentCaptor<Letter> letterCaptor;
 
-    @Before
-    public void setUp() {
-        username = "test";
-    }
+    private static final String TEST_USERNAME = "test-user";
+    private static final String TEST_RECIPIENT = "test content";
+    private static final String TEST_CONTENT = "test-recipient";
+
+
+    // capture stuff from mvc.perform
 
     @Test
-    public void testViewDrafts_shouldReturnDraftsAnd200() throws Exception {
-        given(mailbox.getUserDrafts(username)).willReturn(new HashMap<Long, Letter>());
-        this.mvc.perform(get("/users/{username}/drafts", username)
+    public void testViewDrafts_shouldReturnEmptyListOfDraftsAnd200() throws Exception {
+        given(mailbox.getUserDrafts(TEST_USERNAME)).willReturn(new HashMap<Long, Letter>());
+        this.mvc.perform(get("/users/{username}/drafts", TEST_USERNAME)
                             .accept(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(content().json("{}"));
-        verify(mailbox).getUserDrafts(username);
     }
 
     @Test
-    public void testSaveDraft_shouldSaveDraftAndReturn200() throws Exception {
-        json = new JSONObject();
-        json.put("recipient", username);
-        json.put("content", "test");
-        this.mvc.perform(post("/users/{username}/drafts", username)
+    public void testViewDrafts_shouldReturnNonEmptyListOfDraftsAnd200() throws Exception {
+        HashMap<Long, Letter> mockDrafts = new HashMap<Long, Letter>();
+        mockDrafts.put(1L, new Letter());
+        String stringMockedDrafts = objectMapper.writeValueAsString(mockDrafts);
+        given(mailbox.getUserDrafts(TEST_USERNAME)).willReturn(mockDrafts);
+        this.mvc.perform(get("/users/{username}/drafts", TEST_USERNAME)
+                            .accept(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk())
+                .andExpect(content().json(stringMockedDrafts));
+    }
+
+    @Test
+    public void testSaveDraft_shouldSaveDraftLetterAndReturn201() throws Exception {
+        JSONObject json = new JSONObject();
+        json.put("recipient", TEST_RECIPIENT);
+        json.put("content", TEST_CONTENT);
+        this.mvc.perform(post("/users/{username}/drafts", TEST_USERNAME)
                             .contentType(MediaType.APPLICATION_JSON_VALUE)
                             .content(json.toString()))
                 .andExpect(status().isCreated());
-        verify(postOffice).saveDraft(eq(username), isA(Letter.class)); // deserialized object different?
+        verify(postOffice).saveDraft(eq(TEST_USERNAME), letterCaptor.capture());
+        Letter capturedLetter = letterCaptor.getValue();
+        assertEquals(capturedLetter.getRecipient(), TEST_RECIPIENT);
+        assertEquals(capturedLetter.getContent(), TEST_CONTENT);
     }
 
     @Test
     public void testDeleteDraft_shouldDeleteExistingDraftAndReturn204() throws Exception {
-        Long letterID = 1L;
-        this.mvc.perform(delete("/users/{username}/drafts/{letterID}", username, letterID))
+        long letterID = 1L;
+        this.mvc.perform(delete("/users/{username}/drafts/{letterID}", TEST_USERNAME, letterID))
                 .andExpect(status().isNoContent());
-        verify(postOffice).deleteDraft(username, letterID);
+        verify(postOffice).deleteDraft(TEST_USERNAME, letterID);
     }
 
     @Test
     public void testDeleteDraft_shouldThrow404WhenUserNotFound() throws Exception {
-        Long letterID = 1L;
-        doThrow(new DraftsNotFoundException()).when(postOffice).deleteDraft(username, letterID);
-        this.mvc.perform(delete("/users/{username}/drafts/{letterID}", username, letterID))
+        long letterID = 1L;
+        doThrow(new ResourceNotFoundException()).when(postOffice).deleteDraft(TEST_USERNAME, letterID);
+        this.mvc.perform(delete("/users/{username}/drafts/{letterID}", TEST_USERNAME, letterID))
                 .andExpect(status().isNotFound());
-        verify(postOffice).deleteDraft(username, letterID);
+        verify(postOffice).deleteDraft(TEST_USERNAME, letterID);
     }
 
     @Test
     public void testDeleteDraft_shouldThrow404WhenUserHasNoDraft() throws Exception {
-        Long letterID = 1L;
-        doThrow(new LetterNotFoundException()).when(postOffice).deleteDraft(username, letterID);
-        this.mvc.perform(delete("/users/{username}/drafts/{letterID}", username, letterID))
+        long letterID = 1L;
+        doThrow(new ResourceNotFoundException()).when(postOffice).deleteDraft(TEST_USERNAME, letterID);
+        this.mvc.perform(delete("/users/{username}/drafts/{letterID}", TEST_USERNAME, letterID))
                 .andExpect(status().isNotFound());
-        verify(postOffice).deleteDraft(username, letterID);
+        verify(postOffice).deleteDraft(TEST_USERNAME, letterID);
     }
 
     @Test
     public void testEditDraft_shouldThrow200WhenDraftIsPresent() throws Exception {
-        Long letterID = 1L;
-        json = new JSONObject();
-        json.put("recipient", "test");
-        json.put("content", "test");
-        this.mvc.perform(put("/users/{username}/drafts/{letterID}", username, letterID)
+        long letterID = 1L;
+        JSONObject json = new JSONObject();
+        json.put("recipient", TEST_RECIPIENT);
+        json.put("content", TEST_CONTENT);
+        this.mvc.perform(put("/users/{username}/drafts/{letterID}", TEST_USERNAME, letterID)
                             .contentType(MediaType.APPLICATION_JSON_VALUE)
                             .content(json.toString()))
                 .andExpect(status().isOk());
-        verify(postOffice).editDraft(eq(username), isA(Letter.class), eq(letterID));
+        verify(postOffice).editDraft(eq(TEST_USERNAME), isA(Letter.class), eq(letterID));
     }
 
     @Test
-    public void testEditDraft_shouldThrow404WhenDraftsAreNotPresent() throws Exception {
-        Long letterID = 1L;
-        json = new JSONObject();
-        json.put("recipient", "test");
-        json.put("content", "test");
-        doThrow(new DraftsNotFoundException()).when(postOffice).editDraft(eq(username), any(Letter.class), eq(letterID));
-        this.mvc.perform(put("/users/{username}/drafts/{letterID}", username, letterID)
+    public void testEditDraft_shouldThrow404WhenDraftIsNotPresent() throws Exception {
+        long letterID = 1L;
+        JSONObject json = new JSONObject();
+        json.put("recipient", TEST_RECIPIENT);
+        json.put("content", TEST_CONTENT);
+        doThrow(new ResourceNotFoundException()).when(postOffice).editDraft(eq(TEST_USERNAME), any(Letter.class), eq(letterID));
+        this.mvc.perform(put("/users/{username}/drafts/{letterID}", TEST_USERNAME, letterID)
                             .contentType(MediaType.APPLICATION_JSON_VALUE)
                             .content(json.toString()))
                 .andExpect(status().isNotFound());
-        verify(postOffice).editDraft(eq(username), isA(Letter.class), eq(letterID));
+        verify(postOffice).editDraft(eq(TEST_USERNAME), letterCaptor.capture(), eq(letterID));
+        Letter capturedLetter = letterCaptor.getValue();
+        assertEquals(capturedLetter.getRecipient(), TEST_RECIPIENT);
+        assertEquals(capturedLetter.getContent(), TEST_CONTENT);
     }
 
     @Test
     public void testEditDraft_shouldThrow404WhenDraftLetterIsNotPresent() throws Exception {
-        Long letterID = 1L;
-        json = new JSONObject();
-        json.put("recipient", "test");
-        json.put("content", "test");
-        doThrow(new LetterNotFoundException()).when(postOffice).editDraft(eq(username), any(Letter.class), eq(letterID));
-        this.mvc.perform(put("/users/{username}/drafts/{letterID}", username, letterID)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(json.toString()))
+        long letterID = 1L;
+        JSONObject json = new JSONObject();
+        json.put("recipient", TEST_RECIPIENT);
+        json.put("content", TEST_CONTENT);
+        doThrow(new ResourceNotFoundException()).when(postOffice).editDraft(eq(TEST_USERNAME), any(Letter.class), eq(letterID));
+        this.mvc.perform(put("/users/{username}/drafts/{letterID}", TEST_USERNAME, letterID)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(json.toString()))
                 .andExpect(status().isNotFound());
-        verify(postOffice).editDraft(eq(username), isA(Letter.class), eq(letterID));
+        verify(postOffice).editDraft(eq(TEST_USERNAME), letterCaptor.capture(), eq(letterID));
+        Letter capturedLetter = letterCaptor.getValue();
+        assertEquals(capturedLetter.getRecipient(), TEST_RECIPIENT);
+        assertEquals(capturedLetter.getContent(), TEST_CONTENT);
     }
 
     @Test
-    public void testViewInbox_shouldShowUserInboxOrCreateAnEmptyOne() throws Exception {
-        given(this.mailbox.getUserInbox(username)).willReturn(new HashMap<Long, Letter>());
-        this.mvc.perform(get("/users/{username}/inbox", username)
-                .accept(MediaType.APPLICATION_JSON_VALUE))
+    public void testViewInbox_shouldShowEmptyUserInbox() throws Exception {
+        given(this.mailbox.getUserInbox(TEST_USERNAME)).willReturn(new HashMap<Long, Letter>());
+        this.mvc.perform(get("/users/{username}/inbox", TEST_USERNAME)
+                            .accept(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(content().json("{}"));
-        verify(mailbox).getUserInbox(username);
     }
 
     @Test
-    public void testSendLetter_shouldSendLetterWhenDraftLetterExistsAndReturn200() throws Exception {
-        Long letterID = 1L;
-        this.mvc.perform(post("/users/{username}/drafts/{letterID}", username, letterID))
+    public void testViewInbox_shouldShowNonEmptyUserInbox() throws Exception {
+        HashMap<Long, Letter> mockInbox = new HashMap<Long, Letter>();
+        mockInbox.put(1L, new Letter());
+        String stringMockedInbox = objectMapper.writeValueAsString(mockInbox);
+        given(this.mailbox.getUserInbox(TEST_USERNAME)).willReturn(mockInbox);
+        this.mvc.perform(get("/users/{username}/inbox", TEST_USERNAME)
+                            .accept(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk())
+                .andExpect(content().json(stringMockedInbox));
+    }
+
+    @Test
+    public void testSendLetter_shouldSendLetterAndReturn200() throws Exception {
+        long letterID = 1L;
+        this.mvc.perform(post("/users/{username}/drafts/{letterID}", TEST_USERNAME, letterID))
                 .andExpect(status().isOk());
-        verify(postOffice).sendLetter(username, letterID);
+        verify(postOffice).sendLetter(TEST_USERNAME, letterID);
     }
 
     @Test
     public void testSendLetter_shouldThrow404WhenLetterNotFound() throws Exception {
-        Long letterID = 1L;
-        doThrow(new LetterNotFoundException()).when(postOffice).sendLetter(username, letterID);
-        this.mvc.perform(post("/users/{username}/drafts/{lettersID}", username, letterID))
+        long letterID = 1L;
+        doThrow(new ResourceNotFoundException()).when(postOffice).sendLetter(TEST_USERNAME, letterID);
+        this.mvc.perform(post("/users/{username}/drafts/{lettersID}", TEST_USERNAME, letterID))
                 .andExpect(status().isNotFound());
-        verify(postOffice).sendLetter(username, letterID);
+        verify(postOffice).sendLetter(TEST_USERNAME, letterID);
     }
 
     @Test
     public void testSendLetter_shouldThrow404WhenUserDraftsDoNotFound() throws Exception {
-        Long letterID = 1L;
-        doThrow(new DraftsNotFoundException()).when(postOffice).sendLetter(username, letterID);
-        this.mvc.perform(post("/users/{username}/drafts/{lettersID}", username, letterID))
+        long letterID = 1L;
+        doThrow(new ResourceNotFoundException()).when(postOffice).sendLetter(TEST_USERNAME, letterID);
+        this.mvc.perform(post("/users/{username}/drafts/{lettersID}", TEST_USERNAME, letterID))
                 .andExpect(status().isNotFound());
-        verify(postOffice).sendLetter(username, letterID);
+        verify(postOffice).sendLetter(TEST_USERNAME, letterID);
     }
 
     @Test
     public void testReplyToLetter_shouldReplyToLetterAndReturn200() throws Exception {
-        Long letterID = 1L;
-        json = new JSONObject();
-        json.put("content", "test");
-        json.put("recipient", "test");
-        this.mvc.perform(post("/users/{username}/inbox/{letterid}/reply", username, letterID)
+        long letterID = 1L;
+        JSONObject json = new JSONObject();
+        json.put("recipient", TEST_RECIPIENT);
+        json.put("content", TEST_CONTENT);
+        this.mvc.perform(post("/users/{username}/inbox/{letterid}/reply", TEST_USERNAME, letterID)
                             .contentType(MediaType.APPLICATION_JSON_VALUE)
                             .content(json.toString()))
                 .andExpect(status().isOk());
-        verify(postOffice).sendReply(eq(username), isA(Letter.class));
+        verify(postOffice).sendReply(eq(TEST_USERNAME), letterCaptor.capture());
+        Letter capturedLetter = letterCaptor.getValue();
+        assertEquals(capturedLetter.getRecipient(), TEST_RECIPIENT);
+        assertEquals(capturedLetter.getContent(), TEST_CONTENT);
     }
 
     @Test
     public void testReplyToLetter_shouldThrow404WhenLetterDoesNotExist() throws Exception {
-        Long letterID = 1L;
-        json = new JSONObject();
-        json.put("content", "test");
-        json.put("recipient", "test");
-        doThrow(new LetterNotFoundException()).when(postOffice).sendReply(eq(username), any(Letter.class));
-        this.mvc.perform(post("/users/{username}/inbox/{letterid}/reply", username, letterID)
+        long letterID = 1L;
+        JSONObject json = new JSONObject();
+        json.put("recipient", TEST_RECIPIENT);
+        json.put("content", TEST_CONTENT);
+        doThrow(new ResourceNotFoundException()).when(postOffice).sendReply(eq(TEST_USERNAME), any(Letter.class));
+        this.mvc.perform(post("/users/{username}/inbox/{letterid}/reply", TEST_USERNAME, letterID)
                             .contentType(MediaType.APPLICATION_JSON_VALUE)
                             .content(json.toString()))
                 .andExpect(status().isNotFound());
-        verify(postOffice).sendReply(eq(username), isA(Letter.class));
+        verify(postOffice).sendReply(eq(TEST_USERNAME), letterCaptor.capture());
+        Letter capturedLetter = letterCaptor.getValue();
+        assertEquals(capturedLetter.getRecipient(), TEST_RECIPIENT);
+        assertEquals(capturedLetter.getContent(), TEST_CONTENT);
     }
 
     @Test
     public void testReplyToLetter_shouldThrow404WhenUserDraftsDoNotExist() throws Exception {
-        Long letterID = 1L;
-        json = new JSONObject();
-        json.put("content", "test");
-        json.put("recipient", "test");
-        doThrow(new DraftsNotFoundException()).when(postOffice).sendReply(eq(username), any(Letter.class));
-        this.mvc.perform(post("/users/{username}/inbox/{letterid}/reply", username, letterID)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(json.toString()))
+        long letterID = 1L;
+        JSONObject json = new JSONObject();
+        json.put("recipient", TEST_RECIPIENT);
+        json.put("content", TEST_CONTENT);
+        doThrow(new ResourceNotFoundException()).when(postOffice).sendReply(eq(TEST_USERNAME), any(Letter.class));
+        this.mvc.perform(post("/users/{username}/inbox/{letterid}/reply", TEST_USERNAME, letterID)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(json.toString()))
                 .andExpect(status().isNotFound());
-        verify(postOffice).sendReply(eq(username), isA(Letter.class));
+        verify(postOffice).sendReply(eq(TEST_USERNAME), letterCaptor.capture());
+        Letter capturedLetter = letterCaptor.getValue();
+        assertEquals(capturedLetter.getRecipient(), TEST_RECIPIENT);
+        assertEquals(capturedLetter.getContent(), TEST_CONTENT);
     }
 }

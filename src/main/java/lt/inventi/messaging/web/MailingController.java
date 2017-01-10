@@ -3,7 +3,6 @@ package lt.inventi.messaging.web;
 import lt.inventi.messaging.domain.Letter;
 import lt.inventi.messaging.mailing.Mailbox;
 import lt.inventi.messaging.mailing.PostOffice;
-import org.json.HTTP;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

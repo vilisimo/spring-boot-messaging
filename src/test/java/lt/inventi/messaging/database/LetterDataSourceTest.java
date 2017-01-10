@@ -1,9 +1,8 @@
 package lt.inventi.messaging.database;
+
 import lt.inventi.messaging.domain.Letter;
 
-
-import lt.inventi.messaging.exceptions.DraftsNotFoundException;
-import lt.inventi.messaging.exceptions.LetterNotFoundException;
+import lt.inventi.messaging.exceptions.ResourceNotFoundException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -134,12 +133,12 @@ public class LetterDataSourceTest {
         assertTrue(db.getUserDrafts(author).isEmpty());
     }
 
-    @Test(expected=DraftsNotFoundException.class)
+    @Test(expected=ResourceNotFoundException.class)
     public void removeDraftEntryWhenDraftsDoNotExist() {
         db.removeDraftEntry("test", 1L);
     }
 
-    @Test(expected=LetterNotFoundException.class)
+    @Test(expected=ResourceNotFoundException.class)
     public void removeDraftEntryWhenItDoesNotExist() {
         Letter draftEntry = new Letter();
         String author = "test";
