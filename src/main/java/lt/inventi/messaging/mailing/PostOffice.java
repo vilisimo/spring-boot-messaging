@@ -36,6 +36,7 @@ public class PostOffice {
     }
 
     // username: the one who replies to the letter
+    // note: if the recipient is not changed, letter will be put in the inbox of the person that is sending the letter
     public void sendReply(String username, Letter letter) {
         letter.setRecipient(letter.getAuthor());
         saveDraft(username, letter);

@@ -3,7 +3,9 @@ package lt.inventi.messaging.web;
 import lt.inventi.messaging.domain.Letter;
 import lt.inventi.messaging.mailing.Mailbox;
 import lt.inventi.messaging.mailing.PostOffice;
+import org.json.HTTP;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,14 +29,18 @@ public class MailingController {
         return mailbox.getUserDrafts(username);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(value="users/{username}/drafts", consumes=MediaType.APPLICATION_JSON_VALUE,
             produces=MediaType.APPLICATION_JSON_VALUE)
-    public void saveDraft(@PathVariable("username") String username, @RequestBody @Valid Letter letter) {
+    public void saveDraft(@PathVariable("username") String username,
+                          @RequestBody @Valid Letter letter) {
         postOffice.saveDraft(username, letter);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping(value="/users/{username}/drafts/{letterid}")
-    public void deleteDraft(@PathVariable("username") String username, @PathVariable("letterid") Long letterid) {
+    public void deleteDraft(@PathVariable("username") String username,
+                            @PathVariable("letterid") Long letterid) {
         postOffice.deleteDraft(username, letterid);
     }
 
@@ -50,12 +56,13 @@ public class MailingController {
         return mailbox.getUserInbox(username);
     }
 
-    @PostMapping(value="/users/{username}/drafts/{letterid}/")
+    @PostMapping(value="/users/{username}/drafts/{letterid}")
     public void sendLetter(@PathVariable("username") String username,
                            @PathVariable("letterid") Long letterid) {
         postOffice.sendLetter(username, letterid);
     }
 
+    // /reply needed? Perhaps better to send POST request to users/{username}/inbox/{letterid}?
     @PostMapping(value="/users/{username}/inbox/{letterid}/reply", consumes=MediaType.APPLICATION_JSON_VALUE)
     public void replyToLetter(@PathVariable("username") String username,
                               @PathVariable("letterid") Long letterid,

@@ -1,7 +1,7 @@
 package lt.inventi.messaging.database;
 
 import lt.inventi.messaging.domain.Letter;
-import lt.inventi.messaging.exceptions.DraftNotFoundException;
+import lt.inventi.messaging.exceptions.DraftsNotFoundException;
 import lt.inventi.messaging.exceptions.LetterNotFoundException;
 import org.springframework.stereotype.Component;
 
@@ -62,7 +62,7 @@ public class LetterDataSource {
     public void removeDraftEntry(String username, Long letterId) {
         HashMap<Long, Letter> userDrafts = userDraftsMap.get(username);
         if (userDrafts == null) {
-            throw new DraftNotFoundException();
+            throw new DraftsNotFoundException();
         }
 
         Letter removed = userDrafts.remove(letterId);

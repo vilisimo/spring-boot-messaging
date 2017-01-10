@@ -2,7 +2,7 @@ package lt.inventi.messaging.database;
 import lt.inventi.messaging.domain.Letter;
 
 
-import lt.inventi.messaging.exceptions.DraftNotFoundException;
+import lt.inventi.messaging.exceptions.DraftsNotFoundException;
 import lt.inventi.messaging.exceptions.LetterNotFoundException;
 import org.junit.Before;
 import org.junit.Test;
@@ -134,7 +134,7 @@ public class LetterDataSourceTest {
         assertTrue(db.getUserDrafts(author).isEmpty());
     }
 
-    @Test(expected=DraftNotFoundException.class)
+    @Test(expected=DraftsNotFoundException.class)
     public void removeDraftEntryWhenDraftsDoNotExist() {
         db.removeDraftEntry("test", 1L);
     }
