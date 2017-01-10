@@ -119,7 +119,10 @@ public class MailingControllerTest {
                             .contentType(MediaType.APPLICATION_JSON_VALUE)
                             .content(json.toString()))
                 .andExpect(status().isOk());
-        verify(postOffice).editDraft(eq(TEST_USERNAME), isA(Letter.class), eq(letterID));
+        verify(postOffice).editDraft(eq(TEST_USERNAME), letterCaptor.capture(), eq(letterID));
+        Letter capturedLetter = letterCaptor.getValue();
+        assertEquals(capturedLetter.getRecipient(), TEST_RECIPIENT);
+        assertEquals(capturedLetter.getContent(), TEST_CONTENT);
     }
 
     @Test
