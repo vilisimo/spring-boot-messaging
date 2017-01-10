@@ -77,8 +77,8 @@ public class MailingControllerTest {
                 .andExpect(status().isCreated());
         verify(postOffice).saveDraft(eq(TEST_USERNAME), letterCaptor.capture());
         Letter capturedLetter = letterCaptor.getValue();
-        assertEquals(capturedLetter.getRecipient(), TEST_RECIPIENT);
-        assertEquals(capturedLetter.getContent(), TEST_CONTENT);
+        assertEquals(TEST_RECIPIENT, capturedLetter.getRecipient());
+        assertEquals(TEST_CONTENT, capturedLetter.getContent());
     }
 
     @Test
@@ -119,8 +119,8 @@ public class MailingControllerTest {
                 .andExpect(status().isOk());
         verify(postOffice).editDraft(eq(TEST_USERNAME), letterCaptor.capture(), eq(letterID));
         Letter capturedLetter = letterCaptor.getValue();
-        assertEquals(capturedLetter.getRecipient(), TEST_RECIPIENT);
-        assertEquals(capturedLetter.getContent(), TEST_CONTENT);
+        assertEquals(TEST_RECIPIENT, capturedLetter.getRecipient());
+        assertEquals(TEST_CONTENT, capturedLetter.getContent());
     }
 
     @Test
@@ -136,8 +136,8 @@ public class MailingControllerTest {
                 .andExpect(status().isNotFound());
         verify(postOffice).editDraft(eq(TEST_USERNAME), letterCaptor.capture(), eq(letterID));
         Letter capturedLetter = letterCaptor.getValue();
-        assertEquals(capturedLetter.getRecipient(), TEST_RECIPIENT);
-        assertEquals(capturedLetter.getContent(), TEST_CONTENT);
+        assertEquals(TEST_RECIPIENT, capturedLetter.getRecipient());
+        assertEquals(TEST_CONTENT, capturedLetter.getContent());
     }
 
     @Test
@@ -153,8 +153,8 @@ public class MailingControllerTest {
                 .andExpect(status().isNotFound());
         verify(postOffice).editDraft(eq(TEST_USERNAME), letterCaptor.capture(), eq(letterID));
         Letter capturedLetter = letterCaptor.getValue();
-        assertEquals(capturedLetter.getRecipient(), TEST_RECIPIENT);
-        assertEquals(capturedLetter.getContent(), TEST_CONTENT);
+        assertEquals(TEST_RECIPIENT, capturedLetter.getRecipient());
+        assertEquals(TEST_CONTENT, capturedLetter.getContent());
     }
 
     @Test
@@ -216,8 +216,8 @@ public class MailingControllerTest {
                 .andExpect(status().isOk());
         verify(postOffice).sendReply(eq(TEST_USERNAME), letterCaptor.capture());
         Letter capturedLetter = letterCaptor.getValue();
-        assertEquals(capturedLetter.getRecipient(), TEST_RECIPIENT);
-        assertEquals(capturedLetter.getContent(), TEST_CONTENT);
+        assertEquals(TEST_RECIPIENT, capturedLetter.getRecipient());
+        assertEquals(TEST_CONTENT, capturedLetter.getContent());
     }
 
     @Test
@@ -233,8 +233,8 @@ public class MailingControllerTest {
                 .andExpect(status().isNotFound());
         verify(postOffice).sendReply(eq(TEST_USERNAME), letterCaptor.capture());
         Letter capturedLetter = letterCaptor.getValue();
-        assertEquals(capturedLetter.getRecipient(), TEST_RECIPIENT);
-        assertEquals(capturedLetter.getContent(), TEST_CONTENT);
+        assertEquals(TEST_RECIPIENT, capturedLetter.getRecipient());
+        assertEquals(TEST_CONTENT, capturedLetter.getContent());
     }
 
     @Test
@@ -250,7 +250,7 @@ public class MailingControllerTest {
                 .andExpect(status().isNotFound());
         verify(postOffice).sendReply(eq(TEST_USERNAME), letterCaptor.capture());
         Letter capturedLetter = letterCaptor.getValue();
-        assertEquals(capturedLetter.getRecipient(), TEST_RECIPIENT);
-        assertEquals(capturedLetter.getContent(), TEST_CONTENT);
+        assertEquals(TEST_RECIPIENT, capturedLetter.getRecipient());
+        assertEquals(TEST_CONTENT, capturedLetter.getContent());
     }
 }
