@@ -1,7 +1,9 @@
 package lt.inventi.messaging.mailing;
 
 import lt.inventi.messaging.database.LetterDataSource;
-import lt.inventi.messaging.domain.Letter;
+import lt.inventi.messaging.domain.Draft;
+import lt.inventi.messaging.domain.SentLetter;
+import lt.inventi.messaging.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,30 +16,49 @@ public class PostOffice {
         this.database = database;
     }
 
-    public void saveDraft(String username, Letter letter) {
-        letter.setAuthor(username);
-        database.saveDraftEntry(letter);
+    public void saveDraft(String username, Draft draft) {
+        draft.setAuthor(username);
+        database.saveDraftEntry(draft);
     }
 
-    public void deleteDraft(String username, Long letterId) {
-        database.removeDraftEntry(username, letterId);
+    public void deleteDraft(String username, Long letterID) {
+        Draft toDelete = database.getUserDraft(letterID);
+        if (toDelete == null) {
+            throw new ResourceNotFoundException();
+        }
+        // Different person should not be able to delete someone else's drafts
+        if (toDelete.getAuthor().equals(username)) {
+            database.removeDraftEntry(toDelete);
+        } else {
+            throw new ResourceNotFoundException();
+        }
     }
 
-    public void editDraft(String username, Letter letter, Long letterId) {
-        letter.setId(letterId);
-        letter.setAuthor(username);
-        database.updateEntry(letter);
+    public void editDraft(String username, Draft draft, Long letterId) {
+        draft.setId(letterId);
+        draft.setAuthor(username);
+        database.updateEntry(draft);
     }
 
-    public void sendLetter(String username, Long letterId) {
-        Letter letter = database.getUserDrafts(username).get(letterId);
-        database.removeDraftEntry(username, letterId);
-        database.saveInboxEntry(letter);
+    public void sendLetter(String username, Long letterID) {
+        Draft draftToSend = database.getUserDraft(letterID);
+        if (draftToSend == null || !draftToSend.getAuthor().equals(username)) {
+            throw new ResourceNotFoundException();
+        }
+        database.removeDraftEntry(draftToSend);
+
+        SentLetter sentLetter = new SentLetter();
+        sentLetter.setContent(draftToSend.getContent());
+        sentLetter.setRecipient(draftToSend.getRecipient());
+        sentLetter.setAuthor(draftToSend.getAuthor());
+        sentLetter.setId(draftToSend.getId());
+
+        database.saveInboxEntry(sentLetter);
     }
 
-    // username: the one who replies to the letter
-    // note: if the recipient is not changed, letter will be put in the inbox of the person that is sending the letter
-    public void sendReply(String username, Letter letter) {
+    // username: the one who replies to the draft
+    // note: if the recipient is not changed, draft will be put in the inbox of the person that is sending the draft
+    public void sendReply(String username, Draft letter) {
         letter.setRecipient(letter.getAuthor());
         saveDraft(username, letter);
         sendLetter(username, letter.getId());

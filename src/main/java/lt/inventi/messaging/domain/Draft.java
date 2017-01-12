@@ -1,11 +1,14 @@
 package lt.inventi.messaging.domain;
 
 import org.hibernate.validator.constraints.NotEmpty;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.Document;
 
 import javax.validation.constraints.NotNull;
 
-public class Letter {
-    private Long id;
+@Document(indexName = "messaging", type = "letter")
+public class Draft {
+    @Id private Long id;
     @NotNull
     @NotEmpty
     private String content;
@@ -44,13 +47,5 @@ public class Letter {
 
     public void setContent(String content) {
         this.content = content;
-    }
-
-    // If to be used in MailingController
-    public boolean equals(Letter that) {
-        return that.getAuthor().equals(this.author)
-                && that.getId().equals(this.id)
-                && that.getAuthor().equals(this.author)
-                && that.getRecipient().equals(this.recipient);
     }
 }

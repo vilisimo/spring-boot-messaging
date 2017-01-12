@@ -1,11 +1,12 @@
 package lt.inventi.messaging.mailing;
 
 import lt.inventi.messaging.database.LetterDataSource;
-import lt.inventi.messaging.domain.Letter;
+import lt.inventi.messaging.domain.Draft;
+import lt.inventi.messaging.domain.SentLetter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
+import java.util.List;
 
 @Service
 public class Mailbox {
@@ -16,11 +17,11 @@ public class Mailbox {
         this.database = database;
     }
 
-    public HashMap<Long, Letter> getUserDrafts(String username) {
-        return database.getUserDrafts(username);
+    public List<Draft> getUserDrafts(String username) {
+        return database.getAllUserDrafts(username);
     }
 
-    public HashMap<Long, Letter> getUserInbox(String username) {
+    public List<SentLetter> getUserInbox(String username) {
         return database.getUserInbox(username);
     }
 }

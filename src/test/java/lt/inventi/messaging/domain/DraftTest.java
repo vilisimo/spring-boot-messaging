@@ -4,12 +4,12 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class LetterTest {
+public class DraftTest {
     @Test
     public void setRecipient_shouldSetRecipient() {
-        Letter letter = new Letter();
-        letter.setRecipient("TEST");
-        String recipient = letter.getRecipient();
+        Draft draft = new Draft();
+        draft.setRecipient("TEST");
+        String recipient = draft.getRecipient();
 
         assertEquals("test", recipient);
     }
