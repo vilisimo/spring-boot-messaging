@@ -1,0 +1,37 @@
+#%RAML 1.0
+  ---
+  title: messaging-app
+  baseUri: http://localhost:9300/users
+  version: v1
+  /{username}:
+    description: Username of the user whose resources are to be acccessed.
+    /drafts:
+      description: Saved drafts of the username-specified user.
+      get:
+        description:
+        responses:
+      post:
+        description:
+        body:
+      /{letterid}:
+        description: Specific letter belonging to a particular user.
+        delete:
+          description:
+        put:
+          description:
+          body:
+        /dispatcher:
+          description: Sends the message specified by letter id.
+          post:
+            description:
+            body:
+        /reply:
+          description: Replies to a message specified by letter id.
+          post:
+            description:
+            body:
+    /inbox:
+      description: Inbox of the username-specified user.
+      get:
+        description:
+        responses:

@@ -62,7 +62,6 @@ public class MailingController {
         postOffice.sendLetter(username, letterID);
     }
 
-    // /reply needed? Perhaps better to send POST request to users/{username}/inbox/{letterid}?
     @PostMapping(value="/users/{username}/inbox/{letterid}/reply", consumes=MediaType.APPLICATION_JSON_VALUE)
     public void replyToLetter(@PathVariable("username") String username,
                               @PathVariable("letterid") Long letterID,
