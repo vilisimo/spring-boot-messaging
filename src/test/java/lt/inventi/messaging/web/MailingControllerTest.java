@@ -126,29 +126,13 @@ public class MailingControllerTest {
     }
 
     @Test
-    public void testEditDraft_shouldThrow404WhenDraftIsNotPresent() throws Exception {
-        long letterID = 1L;
-        JSONObject json = new JSONObject();
-        json.put("recipient", TEST_RECIPIENT);
-        json.put("content", TEST_CONTENT);
-        doThrow(new ResourceNotFoundException()).when(postOffice).editDraft(eq(TEST_USERNAME), any(Draft.class), eq(letterID));
-        this.mvc.perform(put("/users/{username}/drafts/{letterID}", TEST_USERNAME, letterID)
-                            .contentType(MediaType.APPLICATION_JSON_VALUE)
-                            .content(json.toString()))
-                .andExpect(status().isNotFound());
-        verify(postOffice).editDraft(eq(TEST_USERNAME), letterCaptor.capture(), eq(letterID));
-        Draft capturedLetter = letterCaptor.getValue();
-        assertEquals(TEST_RECIPIENT, capturedLetter.getRecipient());
-        assertEquals(TEST_CONTENT, capturedLetter.getContent());
-    }
-
-    @Test
     public void testEditDraft_shouldThrow404WhenDraftLetterIsNotPresent() throws Exception {
         long letterID = 1L;
         JSONObject json = new JSONObject();
         json.put("recipient", TEST_RECIPIENT);
         json.put("content", TEST_CONTENT);
-        doThrow(new ResourceNotFoundException()).when(postOffice).editDraft(eq(TEST_USERNAME), any(Draft.class), eq(letterID));
+        doThrow(new ResourceNotFoundException()).when(postOffice)
+                                                .editDraft(eq(TEST_USERNAME), any(Draft.class), eq(letterID));
         this.mvc.perform(put("/users/{username}/drafts/{letterID}", TEST_USERNAME, letterID)
                             .contentType(MediaType.APPLICATION_JSON_VALUE)
                             .content(json.toString()))

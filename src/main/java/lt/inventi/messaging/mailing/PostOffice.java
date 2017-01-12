@@ -34,8 +34,12 @@ public class PostOffice {
         }
     }
 
-    public void editDraft(String username, Draft draft, Long letterId) {
-        draft.setId(letterId);
+    public void editDraft(String username, Draft draft, Long letterID) {
+        //Should have a check to see if letter with letterID exists.
+        if (!database.draftExists(letterID)) {
+            throw new ResourceNotFoundException();
+        }
+        draft.setId(letterID);
         draft.setAuthor(username);
         database.updateEntry(draft);
     }

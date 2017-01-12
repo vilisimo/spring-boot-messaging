@@ -126,6 +126,7 @@ public class LetterDataSource {
         draftRepository.save(draft);
     }
 
+
     // public HashMap<String, HashMap<Long, Draft>> getUsersDraftsCollection() {
     //     return usersDraftsCollection;
     // }
@@ -133,4 +134,9 @@ public class LetterDataSource {
     // public HashMap<String, HashMap<Long, Draft>> getUsersInboxCollection() {
     //     return usersInboxCollection;
     // }
+
+    // TEST THESE METHODS: NEW ONES
+    public boolean draftExists(Long letterID) {
+        return draftRepository.exists(letterID);
+    }
 }
