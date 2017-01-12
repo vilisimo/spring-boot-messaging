@@ -1,86 +1,114 @@
-// package lt.inventi.messaging.mailing;
-//
-// import lt.inventi.messaging.database.LetterDataSource;
-// import lt.inventi.messaging.domain.Draft;
-// import org.junit.Before;
-// import org.junit.Test;
-// import org.junit.runner.RunWith;
-// import org.mockito.Mock;
-// import org.mockito.runners.MockitoJUnitRunner;
-//
-// import java.util.HashMap;
-//
-// import static org.junit.Assert.assertEquals;
-// import static org.mockito.Mockito.*;
-//
-// @RunWith(MockitoJUnitRunner.class)
-// public class PostOfficeTest {
-//     @Mock
-//     private LetterDataSource mockDataSource;
-//     private PostOffice postOffice;
-//
-//     @Before
-//     public void setUp() {
-//         postOffice = new PostOffice(mockDataSource);
-//     }
-//
-//     @Test
-//     public void sendLetter_shouldSendLetter() {
-//         Draft letter = new Draft();
-//         HashMap<Long, Draft> stubHash = new HashMap<Long, Draft>();
-//         stubHash.put(1L, letter);
-//         when(mockDataSource.getAllUserDrafts("test")).thenReturn(stubHash);
-//         postOffice.sendLetter("test", 1L);
-//
-//         verify(mockDataSource).removeDraftEntry("test", 1L);
-//         verify(mockDataSource).saveInboxEntry(letter);
-//     }
-//
-//     @Test
-//     public void saveDraftEntry_shouldSaveDraft() {
-//         String username = "test";
-//         Draft letter = new Draft();
-//         postOffice.saveDraft(username, letter);
-//
-//         verify(mockDataSource).saveDraftEntry(letter);
-//         assertEquals(username, letter.getAuthor());
-//     }
-//
-//     @Test
-//     public void removeDraftEntry_shouldDeleteDraft() {
-//         postOffice.deleteDraft("test", 1L);
-//         verify(mockDataSource).removeDraftEntry("test", 1L);
-//     }
-//
-//     @Test
-//     public void updateEntry_shouldUpdateDraft() {
-//         Draft letter = new Draft();
-//         String author = "test";
-//         Long id = 1L;
-//         postOffice.editDraft(author, letter, 1L);
-//
-//         verify(mockDataSource).updateEntry(letter);
-//         assertEquals(id, letter.getId());
-//         assertEquals(author, letter.getAuthor());
-//     }
-//
-//     @Test
-//     public void sendReply_shouldSendReply() {
-//         Draft letter = new Draft();
-//         String sender = "repliesToLetter";
-//         String originalAuthor = "future_recipient";
-//         Long id = 1L;
-//         letter.setId(id);
-//         letter.setAuthor(originalAuthor);
-//         // sendReply calls sendLetter, which needs to get a letter from a database
-//         HashMap<Long, Draft> stubHash = new HashMap<Long, Draft>();
-//         stubHash.put(1L, letter);
-//         when(mockDataSource.getAllUserDrafts(sender)).thenReturn(stubHash);
-//         postOffice.sendReply(sender, letter);
-//
-//         verify(mockDataSource).saveDraftEntry(letter);
-//         verify(mockDataSource).getAllUserDrafts(sender);
-//         verify(mockDataSource).removeDraftEntry(sender, id);
-//         verify(mockDataSource).saveInboxEntry(letter);
-//     }
-// }
+package lt.inventi.messaging.mailing;
+
+import lt.inventi.messaging.database.LetterDataSource;
+import lt.inventi.messaging.domain.Draft;
+import lt.inventi.messaging.domain.Message;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
+
+@RunWith(MockitoJUnitRunner.class)
+public class PostOfficeTest {
+    @Mock
+    private LetterDataSource mockDataSource;
+    private PostOffice postOffice;
+
+    @Captor
+    private ArgumentCaptor<Message> messageCaptor;
+    @Captor
+    private ArgumentCaptor<Draft> draftCaptor;
+
+    private static final String TEST_AUTHOR = "test-author";
+    private static final String TEST_CONTENT = "test content";
+    private static final String TEST_RECIPIENT = "test-recipient";
+    private static final long TEST_ID = 1L;
+
+    @Before
+    public void setUp() {
+        postOffice = new PostOffice(mockDataSource);
+    }
+
+    @Test
+    public void sendLetter_shouldSendLetter() {
+        Draft draft = new Draft();
+        draft.setAuthor(TEST_AUTHOR);
+        draft.setContent(TEST_CONTENT);
+        draft.setRecipient(TEST_RECIPIENT);
+        draft.setId(TEST_ID);
+        when(mockDataSource.getUserDraft(TEST_ID)).thenReturn(draft);
+        postOffice.sendLetter(TEST_AUTHOR, TEST_ID);
+        verify(mockDataSource).getUserDraft(TEST_ID);
+        verify(mockDataSource).saveInboxEntry(messageCaptor.capture());
+        Message message = messageCaptor.getValue();
+
+        assertEquals(TEST_AUTHOR, message.getAuthor());
+        assertEquals(TEST_CONTENT, message.getContent());
+        assertEquals(TEST_RECIPIENT, message.getRecipient());
+        assertEquals(Long.valueOf(TEST_ID), message.getId());
+    }
+
+    @Test
+    public void saveDraftEntry_shouldSaveDraft() {
+        String username = "test";
+        Draft letter = new Draft();
+        postOffice.saveDraft(username, letter);
+
+        verify(mockDataSource).saveDraftEntry(letter);
+        assertEquals(username, letter.getAuthor());
+    }
+
+    @Test
+    public void removeDraftEntry_shouldDeleteDraft() {
+        Draft stubDraft = new Draft();
+        stubDraft.setAuthor(TEST_AUTHOR);
+        stubDraft.setId(TEST_ID);
+        when(mockDataSource.getUserDraft(TEST_ID)).thenReturn(stubDraft);
+        postOffice.deleteDraft(TEST_AUTHOR, TEST_ID);
+        verify(mockDataSource).removeDraftEntry(draftCaptor.capture());
+        Draft deletedDraft = draftCaptor.getValue();
+        assertEquals(TEST_AUTHOR, deletedDraft.getAuthor());
+        assertEquals(Long.valueOf(TEST_ID), deletedDraft.getId());
+    }
+
+    @Test
+    public void updateEntry_shouldUpdateDraft() {
+        Draft letter = new Draft();
+        when(mockDataSource.draftExists(TEST_ID)).thenReturn(true);
+        postOffice.editDraft(TEST_AUTHOR, letter, TEST_ID);
+        verify(mockDataSource).updateEntry(letter);
+        assertEquals(Long.valueOf(TEST_ID), letter.getId());
+        assertEquals(TEST_AUTHOR, letter.getAuthor());
+    }
+
+    @Test
+    public void sendReply_shouldSetRecipient() {
+        Draft draft = new Draft();
+        draft.setAuthor(TEST_AUTHOR);
+        postOffice.saveDraft(TEST_AUTHOR, draft);
+        verify(mockDataSource).saveDraftEntry(draftCaptor.capture());
+        assertEquals(TEST_AUTHOR, draftCaptor.getValue().getAuthor());
+    }
+
+    @Test
+    public void sendReply_shouldSendReply() {
+        Draft draft = new Draft();
+        draft.setAuthor(TEST_AUTHOR);
+        draft.setRecipient(TEST_RECIPIENT);
+        draft.setId(TEST_ID);
+        when(mockDataSource.getUserDraft(TEST_ID)).thenReturn(draft);
+        postOffice.sendReply(TEST_RECIPIENT, draft);
+        verify(mockDataSource).saveInboxEntry(messageCaptor.capture());
+
+        Message message = messageCaptor.getValue();
+        assertEquals(TEST_RECIPIENT, message.getAuthor());
+        assertEquals(TEST_AUTHOR, message.getRecipient());
+        assertEquals(Long.valueOf(TEST_ID), message.getId());
+    }
+}

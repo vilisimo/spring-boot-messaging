@@ -22,20 +22,19 @@ public class PostOffice {
     }
 
     public void deleteDraft(String username, Long letterID) {
-        Draft toDelete = database.getUserDraft(letterID);
-        if (toDelete == null) {
+        Draft draftToDelete = database.getUserDraft(letterID);
+        if (draftToDelete == null) {
             throw new ResourceNotFoundException();
         }
         // Different person should not be able to delete someone else's drafts
-        if (toDelete.getAuthor().equals(username)) {
-            database.removeDraftEntry(toDelete);
+        if (draftToDelete.getAuthor().equals(username)) {
+            database.removeDraftEntry(draftToDelete);
         } else {
             throw new ResourceNotFoundException();
         }
     }
 
     public void editDraft(String username, Draft draft, Long letterID) {
-        //Should have a check to see if letter with letterID exists.
         if (!database.draftExists(letterID)) {
             throw new ResourceNotFoundException();
         }
