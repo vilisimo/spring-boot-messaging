@@ -2,7 +2,7 @@ package lt.inventi.messaging.mailing;
 
 import lt.inventi.messaging.database.LetterDataSource;
 import lt.inventi.messaging.domain.Draft;
-import lt.inventi.messaging.domain.SentLetter;
+import lt.inventi.messaging.domain.Message;
 import lt.inventi.messaging.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,13 +47,13 @@ public class PostOffice {
         }
         database.removeDraftEntry(draftToSend);
 
-        SentLetter sentLetter = new SentLetter();
-        sentLetter.setContent(draftToSend.getContent());
-        sentLetter.setRecipient(draftToSend.getRecipient());
-        sentLetter.setAuthor(draftToSend.getAuthor());
-        sentLetter.setId(draftToSend.getId());
+        Message message = new Message();
+        message.setContent(draftToSend.getContent());
+        message.setRecipient(draftToSend.getRecipient());
+        message.setAuthor(draftToSend.getAuthor());
+        message.setId(draftToSend.getId());
 
-        database.saveInboxEntry(sentLetter);
+        database.saveInboxEntry(message);
     }
 
     // username: the one who replies to the draft

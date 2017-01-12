@@ -1,7 +1,7 @@
 package lt.inventi.messaging.web;
 
 import lt.inventi.messaging.domain.Draft;
-import lt.inventi.messaging.domain.SentLetter;
+import lt.inventi.messaging.domain.Message;
 import lt.inventi.messaging.mailing.Mailbox;
 import lt.inventi.messaging.mailing.PostOffice;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,11 +52,11 @@ public class MailingController {
     }
 
     @GetMapping(value="/users/{username}/inbox", produces=MediaType.APPLICATION_JSON_VALUE)
-    public List<SentLetter> viewInbox(@PathVariable("username") String username) {
+    public List<Message> viewInbox(@PathVariable("username") String username) {
         return mailbox.getUserInbox(username);
     }
 
-    @PostMapping(value="/users/{username}/drafts/{letterid}")
+    @PostMapping(value="/users/{username}/drafts/{letterid}/dispatcher")
     public void sendLetter(@PathVariable("username") String username,
                            @PathVariable("letterid") Long letterID) {
         postOffice.sendLetter(username, letterID);

@@ -2,7 +2,7 @@ package lt.inventi.messaging.mailing;
 
 import lt.inventi.messaging.database.LetterDataSource;
 import lt.inventi.messaging.domain.Draft;
-import lt.inventi.messaging.domain.SentLetter;
+import lt.inventi.messaging.domain.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +21,7 @@ public class Mailbox {
         return database.getAllUserDrafts(username);
     }
 
-    public List<SentLetter> getUserInbox(String username) {
+    public List<Message> getUserInbox(String username) {
         return database.getUserInbox(username);
     }
 }

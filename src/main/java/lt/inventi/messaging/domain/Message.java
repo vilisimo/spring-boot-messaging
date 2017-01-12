@@ -6,8 +6,8 @@ import org.springframework.data.elasticsearch.annotations.Document;
 
 import javax.validation.constraints.NotNull;
 
-@Document(indexName = "messaging", type = "letter")
-public class SentLetter {
+@Document(indexName = "messaging")
+public class Message {
     @Id private Long id;
     @NotNull
     @NotEmpty

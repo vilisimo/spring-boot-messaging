@@ -1,7 +1,7 @@
 package lt.inventi.messaging.database;
 
 import lt.inventi.messaging.domain.Draft;
-import lt.inventi.messaging.domain.SentLetter;
+import lt.inventi.messaging.domain.Message;
 import lt.inventi.messaging.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -51,7 +51,7 @@ public class LetterDataSource {
     // }
 
     // Returns letters in user's inbox
-    public List<SentLetter> getUserInbox(String recipient) {
+    public List<Message> getUserInbox(String recipient) {
         return inboxRepository.findLettersByRecipient(recipient);
     }
 
@@ -83,7 +83,7 @@ public class LetterDataSource {
     //     // return letter;
     // }
 
-    public void saveInboxEntry(SentLetter letter) {
+    public void saveInboxEntry(Message letter) {
         inboxRepository.save(letter);
     }
 
