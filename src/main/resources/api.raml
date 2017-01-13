@@ -1,37 +1,229 @@
 #%RAML 1.0
-  ---
-  title: messaging-app
-  baseUri: http://localhost:9300/users
-  version: v1
-  /{username}:
-    description: Username of the user whose resources are to be acccessed.
-    /drafts:
-      description: Saved drafts of the username-specified user.
-      get:
-        description:
-        responses:
-      post:
-        description:
-        body:
-      /{letterid}:
-        description: Specific letter belonging to a particular user.
-        delete:
-          description:
-        put:
-          description:
+---
+title: messaging-app
+baseUri: http://localhost:9300/users
+version: v1
+/{username}:
+  description: Username of the user whose resources are to be acccessed.
+  /drafts:
+    description: Saved drafts of the username-specified user.
+    get:
+      description: Get the drafts of a user with `username = {username}`.
+      responses:
+        200:
           body:
-        /dispatcher:
-          description: Sends the message specified by letter id.
-          post:
-            description:
-            body:
-        /reply:
-          description: Replies to a message specified by letter id.
-          post:
-            description:
-            body:
-    /inbox:
-      description: Inbox of the username-specified user.
-      get:
-        description:
+            application/json:
+              example: |
+                [
+                  {
+                    "id": 1,
+                    "content": "example content 1",
+                    "author": "user1",
+                    "recipient": "user2"
+                  },
+                  {
+                    "id": 2,
+                    "content": "example content 2",
+                    "author": "user1",
+                    "recipient": "user3"
+                  }
+                ]
+    post:
+      description: Create a draft whose owner will be a user with `username = {username}`.
+      responses:
+        201:
+    /{letterid}:
+      description: Specific letter belonging to a particular user.
+      delete:
+        description: Delete a draft belonging to a user with `username = {username}`.
         responses:
+          204:
+          404:
+            body:
+              application/json:
+                example: |
+                  [
+                    {
+                      "timestamp": 1484288733991,
+                      "status": 404,
+                      "error": "Not Found",
+                      "exception": "lt.inventi.messaging.exceptions.ResourceNotFoundException",
+                      "message": "Requested resource was not found.",
+                      "path": "/users/user1/drafts/99"
+                    }
+                  ]
+      put:
+        description: Edit a draft beloning to a a user with `username = {username}`.
+        body:
+          application/json:
+            schema: |
+              {
+                "type": "object",
+                "required": true,
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "required": false
+                  },
+                  "content": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "author": {
+                    "type": "string",
+                    "required": true
+                  },
+                  "recipient": {
+                    "type": "string",
+                    "required": true
+                  }
+                }
+              }
+            example: |
+              {
+                "id": 1,
+                "author": "author",
+                "recipient": "recipient"
+              }
+        responses:
+          200:
+          404:
+            body:
+              application/json:
+                example: |
+                  [
+                    {
+                      "timestamp": 1484288925155,
+                      "status": 404,
+                      "error": "Not Found",
+                      "exception": "lt.inventi.messaging.exceptions.ResourceNotFoundException",
+                      "message": "Requested resource was not found.",
+                      "path": "/users/user1/drafts/99"
+                    }
+                  ]
+      /dispatcher:
+        description: Sends the message with `id = {letterid}`.
+        post:
+          description: Send message with `id = {letterid}` to the recipient.
+          body:
+            application/json:
+              schema: |
+                {
+                  "type": "object",
+                  "required": true,
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "required": false
+                    },
+                    "content": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "author": {
+                      "type": "string",
+                      "required": true
+                    },
+                    "recipient": {
+                      "type": "string",
+                      "required": true
+                    }
+                  }
+                }
+              example: |
+                {
+                  "id": 1,
+                  "author": "author",
+                  "recipient": "recipient"
+                }
+          responses:
+            200:
+            404:
+              body:
+                application/json:
+                  example: |
+                    [
+                      {
+                        "timestamp": 1484288925155,
+                        "status": 404,
+                        "error": "Not Found",
+                        "exception": "lt.inventi.messaging.exceptions.ResourceNotFoundException",
+                        "message": "Requested resource was not found.",
+                        "path": "/usersuser1drafts/3/dispatcher"
+                      }
+                    ]
+  /inbox:
+    description: Inbox of the username-specified user.
+    get:
+      description: Get an inbox of a user with `username = {username}`
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                [
+                  {
+                    "id": 1,
+                    "content": "example of inbox message",
+                    "author": "user1",
+                    "recipient": "user2"
+                  },
+                  {
+                    "id": 2,
+                    "content": "second example of inbox message",
+                    "author": "user1",
+                    "recipient": "user3"
+                  }
+                ]
+    /{letterid}/reply:
+      description: Replies to a message specified by letter id.
+      post:
+        description: Reply to a message in the inbox which has 'id = {letterid}`.
+        responses:
+          200:
+          404:
+            body:
+              application/json:
+                example: |
+                  [
+                    {
+                      "timestamp": 1484289711139,
+                      "status": 404,
+                      "error": "Not Found",
+                      "exception": "lt.inventi.messaging.exceptions.ResourceNotFoundException",
+                      "message": "Requested resource was not found.",
+                      "path": "/users/user1/inbox/111/reply"
+                    }
+                  ]
+        body:
+          application/json:
+            schema: |
+              {
+                "type": "object",
+                "required": true,
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "required": false
+                  },
+                  "content": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "author": {
+                    "type": "string",
+                    "required": true
+                  },
+                  "recipient": {
+                    "type": "string",
+                    "required": true
+                  }
+                }
+              }
+            example: |
+              {
+                "id": 1,
+                "content": "example content",
+                "author": "example-author",
+                "recipient": "example-recipient"
+              }
