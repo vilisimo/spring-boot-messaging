@@ -45,7 +45,7 @@ public class MailingControllerTest {
     private static final String TEST_USERNAME = "test-user";
     private static final String TEST_RECIPIENT = "test content";
     private static final String TEST_CONTENT = "test-recipient";
-
+    private static final Long TEST_ID = 1L;
 
     @Test
     public void testViewDrafts_shouldReturnEmptyListOfDraftsAnd200() throws Exception {
@@ -200,7 +200,7 @@ public class MailingControllerTest {
                             .contentType(MediaType.APPLICATION_JSON_VALUE)
                             .content(json.toString()))
                 .andExpect(status().isOk());
-        verify(postOffice).sendReply(eq(TEST_USERNAME), letterCaptor.capture());
+        verify(postOffice).sendReply(eq(TEST_USERNAME), eq(TEST_ID), letterCaptor.capture());
         Draft capturedLetter = letterCaptor.getValue();
         assertEquals(TEST_RECIPIENT, capturedLetter.getRecipient());
         assertEquals(TEST_CONTENT, capturedLetter.getContent());
@@ -212,12 +212,15 @@ public class MailingControllerTest {
         JSONObject json = new JSONObject();
         json.put("recipient", TEST_RECIPIENT);
         json.put("content", TEST_CONTENT);
-        doThrow(new ResourceNotFoundException()).when(postOffice).sendReply(eq(TEST_USERNAME), any(Draft.class));
+        json.put("id", TEST_ID);
+        doThrow(new ResourceNotFoundException())
+                .when(postOffice)
+                .sendReply(eq(TEST_USERNAME), eq(TEST_ID), any(Draft.class));
         this.mvc.perform(post("/users/{username}/inbox/{letterid}/reply", TEST_USERNAME, letterID)
                             .contentType(MediaType.APPLICATION_JSON_VALUE)
                             .content(json.toString()))
                 .andExpect(status().isNotFound());
-        verify(postOffice).sendReply(eq(TEST_USERNAME), letterCaptor.capture());
+        verify(postOffice).sendReply(eq(TEST_USERNAME), eq(TEST_ID), letterCaptor.capture());
         Draft capturedLetter = letterCaptor.getValue();
         assertEquals(TEST_RECIPIENT, capturedLetter.getRecipient());
         assertEquals(TEST_CONTENT, capturedLetter.getContent());
@@ -229,12 +232,15 @@ public class MailingControllerTest {
         JSONObject json = new JSONObject();
         json.put("recipient", TEST_RECIPIENT);
         json.put("content", TEST_CONTENT);
-        doThrow(new ResourceNotFoundException()).when(postOffice).sendReply(eq(TEST_USERNAME), any(Draft.class));
+        json.put("id", TEST_ID);
+        doThrow(new ResourceNotFoundException())
+                .when(postOffice)
+                .sendReply(eq(TEST_USERNAME), eq(TEST_ID), any(Draft.class));
         this.mvc.perform(post("/users/{username}/inbox/{letterid}/reply", TEST_USERNAME, letterID)
                             .contentType(MediaType.APPLICATION_JSON_VALUE)
                             .content(json.toString()))
                 .andExpect(status().isNotFound());
-        verify(postOffice).sendReply(eq(TEST_USERNAME), letterCaptor.capture());
+        verify(postOffice).sendReply(eq(TEST_USERNAME), eq(TEST_ID), letterCaptor.capture());
         Draft capturedLetter = letterCaptor.getValue();
         assertEquals(TEST_RECIPIENT, capturedLetter.getRecipient());
         assertEquals(TEST_CONTENT, capturedLetter.getContent());

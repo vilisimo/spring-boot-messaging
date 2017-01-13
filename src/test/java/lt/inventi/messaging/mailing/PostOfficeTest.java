@@ -3,6 +3,7 @@ package lt.inventi.messaging.mailing;
 import lt.inventi.messaging.database.LetterDataSource;
 import lt.inventi.messaging.domain.Draft;
 import lt.inventi.messaging.domain.Message;
+import lt.inventi.messaging.exceptions.ResourceNotFoundException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -103,12 +104,22 @@ public class PostOfficeTest {
         draft.setRecipient(TEST_RECIPIENT);
         draft.setId(TEST_ID);
         when(mockDataSource.getUserDraft(TEST_ID)).thenReturn(draft);
-        postOffice.sendReply(TEST_RECIPIENT, draft);
+        Message message = new Message();
+        message.setRecipient(TEST_RECIPIENT);
+        when(mockDataSource.getUserInboxMessage(TEST_ID)).thenReturn(message);
+        postOffice.sendReply(TEST_RECIPIENT, TEST_ID, draft);
         verify(mockDataSource).saveInboxEntry(messageCaptor.capture());
 
-        Message message = messageCaptor.getValue();
+        message = messageCaptor.getValue();
         assertEquals(TEST_RECIPIENT, message.getAuthor());
         assertEquals(TEST_AUTHOR, message.getRecipient());
         assertEquals(Long.valueOf(TEST_ID), message.getId());
+    }
+
+    @Test(expected= ResourceNotFoundException.class)
+    public void sendReply_shouldThrow404WhenInboxEntryNotFound() {
+        Draft draft = new Draft();
+        when(mockDataSource.getUserInboxMessage(TEST_ID)).thenReturn(null);
+        postOffice.sendReply(TEST_RECIPIENT, TEST_ID, draft);
     }
 }

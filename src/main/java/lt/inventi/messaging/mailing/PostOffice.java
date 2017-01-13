@@ -61,9 +61,14 @@ public class PostOffice {
 
     // username: the one who replies to the draft
     // note: if the recipient is not changed, draft will be put in the inbox of the person that is sending the draft
-    public void sendReply(String username, Draft letter) {
-        letter.setRecipient(letter.getAuthor());
-        saveDraft(username, letter);
-        sendLetter(username, letter.getId());
+    public void sendReply(String username, Long letterID, Draft draft) {
+        Message message = database.getUserInboxMessage(letterID);
+        if (message == null || !message.getRecipient().equals(draft.getRecipient())) {
+            throw new ResourceNotFoundException();
+        }
+
+        draft.setRecipient(draft.getAuthor());
+        saveDraft(username, draft);
+        sendLetter(username, draft.getId());
     }
 }

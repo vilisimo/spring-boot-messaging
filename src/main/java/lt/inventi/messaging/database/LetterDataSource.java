@@ -30,6 +30,10 @@ public class LetterDataSource {
         return draftRepository.findOne(letterID);
     }
 
+    public Message getUserInboxMessage(Long letterID) {
+        return inboxRepository.findOne(letterID);
+    }
+
     public List<Message> getUserInbox(String recipient) {
         return inboxRepository.findLettersByRecipient(recipient);
     }
