@@ -30,12 +30,43 @@ version: v1
                 ]
     post:
       description: Create a draft whose owner will be a user with `username = {username}`.
+      body:
+        application/json:
+          schema: |
+            {
+              "type": "object",
+              "required": true,
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "required": false
+                },
+                "content": {
+                  "type": "string",
+                  "required": false
+                },
+                "author": {
+                  "type": "string",
+                  "required": true
+                },
+                "recipient": {
+                  "type": "string",
+                  "required": true
+                }
+              }
+            }
+          example: |
+            {
+              "author": "author",
+              "recipient": "recipient",
+              "content": "letter content"
+            }
       responses:
         201:
     /{letterid}:
       description: Specific letter belonging to a particular user.
       delete:
-        description: Delete a draft belonging to a user with `username = {username}`.
+        description: Delete a draft belonging to a user with `username = {username}` with letter ID `{id = letterid}`.
         responses:
           204:
           404:
@@ -53,7 +84,7 @@ version: v1
                     }
                   ]
       put:
-        description: Edit a draft beloning to a a user with `username = {username}`.
+        description: Edit a draft beloning to a a user with `username = {username}` with letter ID `id = {letterid}`.
         body:
           application/json:
             schema: |
@@ -81,9 +112,9 @@ version: v1
               }
             example: |
               {
-                "id": 1,
                 "author": "author",
-                "recipient": "recipient"
+                "recipient": "recipient",
+                "content": "edited content"
               }
         responses:
           200:
@@ -104,38 +135,7 @@ version: v1
       /dispatcher:
         description: Sends the message with `id = {letterid}`.
         post:
-          description: Send message with `id = {letterid}` to the recipient.
-          body:
-            application/json:
-              schema: |
-                {
-                  "type": "object",
-                  "required": true,
-                  "properties": {
-                    "id": {
-                      "type": "integer",
-                      "required": false
-                    },
-                    "content": {
-                      "type": "string",
-                      "required": false
-                    },
-                    "author": {
-                      "type": "string",
-                      "required": true
-                    },
-                    "recipient": {
-                      "type": "string",
-                      "required": true
-                    }
-                  }
-                }
-              example: |
-                {
-                  "id": 1,
-                  "author": "author",
-                  "recipient": "recipient"
-                }
+          description: Send message with `id = {letterid}` to the recipient form user with `username = {username}`.
           responses:
             200:
             404:
@@ -222,7 +222,6 @@ version: v1
               }
             example: |
               {
-                "id": 1,
                 "content": "example content",
                 "author": "example-author",
                 "recipient": "example-recipient"
